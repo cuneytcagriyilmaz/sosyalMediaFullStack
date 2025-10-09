@@ -1,0 +1,58 @@
+server:
+  port: 8081
+  tomcat:
+    max-swallow-size: 500MB
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sosyalmedia_customer_service
+    username: cagri
+    password: cagri_1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 200MB
+      max-request-size: 500MB
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    com.sosyalmedia.customerservice: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,beans,env
+  endpoint:
+    health:
+      show-details: always
+
+file:
+  upload:
+    directory: C:\Users\Approxy\Desktop\s\sosyalMediaProject\kaydedilenResimler
+    allowed-extensions: jpg,jpeg,png,gif,pdf,mp4,avi,mov,doc,docx
+

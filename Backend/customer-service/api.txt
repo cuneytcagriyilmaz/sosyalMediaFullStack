@@ -1,0 +1,283 @@
+document upload'ı kontrol et. bath ile.
+
+
+- Add Customer
+POST
+
+http://localhost:8081/api/customers
+{
+  "companyName": "softtest1",
+  "sector": "cafe",
+  "address": "Teknopark Mah. No:12",
+  "membershipPackage": "Gold",
+  "status": "PASSIVE",
+  "specialDates": true,
+  "targetRegion": "Ankara",
+  "customerHashtags": "#techcoffee",
+  "postType": "gorsel",
+  "postFrequency": "1",
+  "postTone": "resmi",
+  "audienceAge": "18-25",
+  "audienceInterests": "kahve, teknoloji",
+  "customerContact1Name": "Deniz",
+  "customerContact1Surname": "Aydın",
+  "customerContact1Email": "deniz@techcoffee.com",
+  "customerContact1Phone": "5551122334",
+  "customerContact2Name": "Berk",
+  "customerContact2Surname": "Çetin",
+  "customerContact2Email": "berk@techcoffee.com",
+  "customerContact2Phone": "5552233445",
+  "customerContact3Name": "Seda",
+  "customerContact3Surname": "Öztürk",
+  "customerContact3Email": "seda@techcoffee.com",
+  "customerContact3Phone": "5553344556",
+  "instagram": "techcoffee_insta",
+  "facebook": "TechCoffeeFB",
+  "tiktok": "techcoffee_tt",
+  "googleConsoleEmail": "seo@techcoffee.com",
+  "seoTitleSuggestions": "TechCoffee SEO Title",
+  "seoContentSuggestions": "TechCoffee SEO Content",
+  "instagramApiKey": "IG_KEY_789",
+  "facebookApiKey": "FB_KEY_789",
+  "tiktokApiKey": "TT_KEY_789",
+  "googleApiKey": "GL_KEY_789",
+  "customerLogos": ["techcoffee_logo.png"],
+  "customerPhotos": ["techcoffee_photo1.png"],
+  "createdAt": "2025-10-06T12:20:00",
+  "updatedAt": "2025-10-06T12:20:00"
+}
+__________________________________________________________________________________________________________________
+
+
+- GET All Customer
+GET
+
+http://localhost:8081/api/customers
+__________________________________________________________________________________________________________________
+
+- Get Customer By Id
+GET
+
+http://localhost:8081/api/customers/13
+__________________________________________________________________________________________________________________
+
+- Get Customer By Company Name
+GET
+
+http://localhost:8081/api/customers/company/TechCoffee
+__________________________________________________________________________________________________________________
+
+-Get Customer List By Sector
+GET
+
+http://localhost:8081/api/customers/sector/cafe
+__________________________________________________________________________________________________________________
+
+- Get Customer List By Status
+GET
+
+http://localhost:8081/api/customers/status/PASSIVE
+__________________________________________________________________________________________________________________
+
+- Partial Update Customer By Id
+PATCH
+
+http://localhost:8081/api/customers/1
+
+{
+  "address": "Yeni Adres, Antalya",
+  "status": "PASSIVE"
+}
+__________________________________________________________________________________________________________________
+
+- Partial Update Customer By Company Name
+PATCH
+
+http://localhost:8081/api/customers/company/TechCoffee
+
+{
+  "address": "Yeni Adres, Antalya2",
+  "status": "PASSIVE"
+}
+__________________________________________________________________________________________________________________
+
+- Hard Delete By Id
+DELETE
+
+http://localhost:8081/api/customers/3/hard
+__________________________________________________________________________________________________________________
+
+- Soft Delete By Id
+DELETE
+
+http://localhost:8081/api/customers/3
+__________________________________________________________________________________________________________________
+
+
+- Soft Delete by Company Name
+DELETE
+
+http://localhost:8081/api/customers/company/TechCoffee44
+__________________________________________________________________________________________________________________
+
+- Deleted Customer List
+GET
+
+http://localhost:8081/api/customers/deleted
+__________________________________________________________________________________________________________________
+
+- Recover Deleted Customer By Id
+PUT
+
+http://localhost:8081/api/customers/3/restore
+__________________________________________________________________________________________________________________
+
+
+-Upload Logo Single
+POST
+http://localhost:8081/api/customers/5/files/logos
+
+curl -X POST http://localhost:8081/api/customers/17/files/logos \
+  -F "file=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/1.jpg"
+__________________________________________________________________________________________________________________
+
+- Upload Photo Single
+POST
+http://localhost:8081/api/customers/5/files/photos
+
+curl -X POST "http://localhost:8081/api/customers/17/files/photos" -F "file=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/3.jpeg"
+
+__________________________________________________________________________________________________________________
+
+-- Upload Video Single
+POST
+http://localhost:8081/api/customers/2/files/videos
+
+curl -X POST "http://localhost:8081/api/customers/17/files/videos" -F "file=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/11.mp4"
+
+__________________________________________________________________________________________________________________
+
+- Upload Multiple Video
+POST
+
+curl -X POST http://localhost:8081/api/customers/17/files/batch \
+  -F "type=videos" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/11.mp4" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/333.mp4"
+
+__________________________________________________________________________________________________________________
+
+
+- Upload Multiple Video
+POST
+
+curl -X POST http://localhost:8081/api/customers/17/files/batch \
+  -F "type=videos" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/11.mp4" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/333.mp4"
+
+__________________________________________________________________________________________________________________
+
+
+- Upload Multiple Photo
+POST
+
+curl -X POST http://localhost:8081/api/customers/17/files/batch \
+  -F "type=photos" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/1.jpg" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/2.jpeg" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/3.jpeg"
+
+
+
+__________________________________________________________________________________________________________________
+
+  Upload Single Document
+  POST
+
+  curl -X POST http://localhost:8081/api/customers/17/files/documents -F "file=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/3.pdf"
+
+
+_________________________________________________________________________________________________________________
+
+  Upload Multiple logo
+  POST
+
+curl -X POST http://localhost:8081/api/customers/17/files/batch \
+  -F "type=logos" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/1.jpg" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/2.jpeg" \
+  -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/3.jpeg"
+
+
+_________________________________________________________________________________________________________________
+
+  Upload Multiple Document
+  POST
+
+  curl -X POST http://localhost:8081/api/customers/17/files/batch \
+    -F "type=documents" \
+    -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/3.pdf" \
+    -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/1.docx" \
+    -F "files=@C:/Users/Approxy/Desktop/s/sosyalMediaProject/customerupoad/2.doc"
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DOWNLOAD    DOWNLOAD    DOWNLOAD    DOWNLOAD    DOWNLOAD    DOWNLOAD    DOWNLOAD
+__________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+bunlar kontrol edilmeli. aynı isimde tekrar indirince problem oluyor falan
+_________________________________________________________________________________________________________________
+  DOWNLOAD FILE
+
+   curl -O -J http://localhost:8081/api/customers/17/files/download/70
+
+_________________________________________________________________________________________________________________
+
+  DOWNLOAD PDF
+  curl -O -J http://localhost:8081/api/customers/17/files/download/70
+
+
+_________________________________________________________________________________________________________________
+
+    TARAYICIDA LOGO GOSTERME
+   http://localhost:8081/api/customers/11/files/view/45
+
+_________________________________________________________________________________________________________________
+
+    TARAYICIDA PDF GOSTERME
+   http://localhost:8081/api/customers/11/files/view/44
+
+_________________________________________________________________________________________________________________
+
+  TARAYICIDA VIDEO GOSTERME
+   http://localhost:8081/api/customers/11/files/view/32
+
+_________________________________________________________________________________________________________________
+
+     TARAYICIDA RESİM GOSTERME
+    http://localhost:8081/api/customers/11/files/view/45
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DELETE  DELETE  DELETE  DELETE
+__________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+1. Önce dosya listesi al:
+curl http://localhost:8081/api/customers/16/files
+
+2. Bir dosyayı sil (örnek: mediaId = 47):
+curl -X DELETE http://localhost:8081/api/customers/11/files/47
+
+Beklenen response:
+json{
+  "success": true,
+  "message": "Dosya silindi",
+  "data": null,
+  "timestamp": "..."
+}
+
+3. Kontroller:
+DB'den kayıt silinmiş mi?
+Fiziksel dosya silinmiş mi?
+
