@@ -1,7 +1,7 @@
 package com.sosyalmedia.customerservice.controller;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sosyalmedia.customerservice.dto.ContactDTO;
 import com.sosyalmedia.customerservice.dto.CustomerRequest;
 import com.sosyalmedia.customerservice.entity.Customer;
 import com.sosyalmedia.customerservice.repository.CustomerRepository;
@@ -15,6 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -37,25 +40,32 @@ class CustomerControllerIntegrationTest {
 
     private CustomerRequest validRequest;
 
-
     @BeforeEach
     void setUp() {
+        // ContactDTO listesi
+        List<ContactDTO> contacts = new ArrayList<>();
+        contacts.add(ContactDTO.builder()
+                .name("Ahmet")
+                .surname("Yılmaz")
+                .email("ahmet@test.com")
+                .phone("5551234567")
+                .priority(1)
+                .build());
+
         validRequest = CustomerRequest.builder()
                 .companyName("Integration Test Cafe")
                 .sector("cafe")
                 .address("Test Address")
                 .membershipPackage("Gold")
                 .status(Customer.CustomerStatus.ACTIVE)
-                .specialDates(false)  // ← EKLE
+                .specialDates(false)
                 .postType("gorsel")
                 .postFrequency("3")
                 .postTone("samimi")
-                .customerContact1Name("Test")
-                .customerContact1Surname("User")
-                .customerContact1Email("test@test.com")
-                .customerContact1Phone("5551234567")
+                .contacts(contacts)  // YENİ: Liste olarak
                 .build();
     }
+
     @AfterEach
     void tearDown() {
         customerRepository.deleteAll();
@@ -70,7 +80,50 @@ class CustomerControllerIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.companyName").value("Integration Test Cafe"))
                 .andExpect(jsonPath("$.data.sector").value("cafe"))
+                .andExpect(jsonPath("$.data.contacts").isArray())
+                .andExpect(jsonPath("$.data.contacts[0].name").value("Ahmet"))
+                .andExpect(jsonPath("$.data.contacts[0].email").value("ahmet@test.com"))
                 .andExpect(jsonPath("$.data.id").exists());
+    }
+
+    @Test
+    void createCustomer_WithMultipleContacts_Success() throws Exception {
+        // Given - 3 contact
+        List<ContactDTO> contacts = new ArrayList<>();
+        contacts.add(ContactDTO.builder()
+                .name("Ahmet")
+                .surname("Yılmaz")
+                .email("ahmet@test.com")
+                .phone("5551234567")
+                .priority(1)
+                .build());
+        contacts.add(ContactDTO.builder()
+                .name("Ayşe")
+                .surname("Kaya")
+                .email("ayse@test.com")
+                .phone("5559876543")
+                .priority(2)
+                .build());
+        contacts.add(ContactDTO.builder()
+                .name("Mehmet")
+                .surname("Demir")
+                .email("mehmet@test.com")
+                .phone("5558765432")
+                .priority(3)
+                .build());
+
+        validRequest.setContacts(contacts);
+
+        // When & Then
+        mockMvc.perform(post("/api/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.contacts").isArray())
+                .andExpect(jsonPath("$.data.contacts", hasSize(3)))
+                .andExpect(jsonPath("$.data.contacts[0].name").value("Ahmet"))
+                .andExpect(jsonPath("$.data.contacts[1].name").value("Ayşe"))
+                .andExpect(jsonPath("$.data.contacts[2].name").value("Mehmet"));
     }
 
     @Test
@@ -90,15 +143,12 @@ class CustomerControllerIntegrationTest {
     }
 
     @Test
-    void createCustomer_MissingRequiredFields_ReturnsBadRequest() throws Exception {
-        CustomerRequest invalidRequest = CustomerRequest.builder()
-                .companyName("Test")
-                // Missing required fields
-                .build();
+    void createCustomer_NoContacts_ReturnsBadRequest() throws Exception {
+        validRequest.setContacts(new ArrayList<>());  // Boş liste
 
         mockMvc.perform(post("/api/customers")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                        .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Validation Failed"));
     }
@@ -136,7 +186,9 @@ class CustomerControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(customerId))
-                .andExpect(jsonPath("$.data.companyName").value("Integration Test Cafe"));
+                .andExpect(jsonPath("$.data.companyName").value("Integration Test Cafe"))
+                .andExpect(jsonPath("$.data.contacts").isArray())
+                .andExpect(jsonPath("$.data.contacts[0].name").value("Ahmet"));
     }
 
     @Test
@@ -207,6 +259,7 @@ class CustomerControllerIntegrationTest {
         // Verify it's back in active list
         mockMvc.perform(get("/api/customers/" + customerId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(customerId));
+                .andExpect(jsonPath("$.data.id").value(customerId))
+                .andExpect(jsonPath("$.data.contacts").isArray());
     }
 }

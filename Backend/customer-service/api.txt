@@ -6,45 +6,52 @@ POST
 
 http://localhost:8081/api/customers
 {
-  "companyName": "softtest1",
+  "companyName": "Premium Coffee House",
   "sector": "cafe",
-  "address": "Teknopark Mah. No:12",
-  "membershipPackage": "Gold",
-  "status": "PASSIVE",
+  "address": "Atatürk Bulvarı No:123, Muratpaşa, Antalya",
+  "membershipPackage": "Platinum",
+  "status": "ACTIVE",
   "specialDates": true,
-  "targetRegion": "Ankara",
-  "customerHashtags": "#techcoffee",
+  "targetRegion": "Antalya Merkez",
+  "customerHashtags": "#kahve #antalya #premiumcoffee #latte",
   "postType": "gorsel",
-  "postFrequency": "1",
-  "postTone": "resmi",
-  "audienceAge": "18-25",
-  "audienceInterests": "kahve, teknoloji",
-  "customerContact1Name": "Deniz",
-  "customerContact1Surname": "Aydın",
-  "customerContact1Email": "deniz@techcoffee.com",
-  "customerContact1Phone": "5551122334",
-  "customerContact2Name": "Berk",
-  "customerContact2Surname": "Çetin",
-  "customerContact2Email": "berk@techcoffee.com",
-  "customerContact2Phone": "5552233445",
-  "customerContact3Name": "Seda",
-  "customerContact3Surname": "Öztürk",
-  "customerContact3Email": "seda@techcoffee.com",
-  "customerContact3Phone": "5553344556",
-  "instagram": "techcoffee_insta",
-  "facebook": "TechCoffeeFB",
-  "tiktok": "techcoffee_tt",
-  "googleConsoleEmail": "seo@techcoffee.com",
-  "seoTitleSuggestions": "TechCoffee SEO Title",
-  "seoContentSuggestions": "TechCoffee SEO Content",
-  "instagramApiKey": "IG_KEY_789",
-  "facebookApiKey": "FB_KEY_789",
-  "tiktokApiKey": "TT_KEY_789",
-  "googleApiKey": "GL_KEY_789",
-  "customerLogos": ["techcoffee_logo.png"],
-  "customerPhotos": ["techcoffee_photo1.png"],
-  "createdAt": "2025-10-06T12:20:00",
-  "updatedAt": "2025-10-06T12:20:00"
+  "postFrequency": "5",
+  "postTone": "samimi",
+  "audienceAge": "25-45",
+  "audienceInterests": "Kahve, Sanat, Müzik, Kitap",
+  "contacts": [
+    {
+      "name": "Ahmet",
+      "surname": "Yılmaz",
+      "email": "ahmet.yilmaz@premiumcoffee.com",
+      "phone": "5551234567",
+      "priority": 1
+    },
+    {
+      "name": "Ayşe",
+      "surname": "Kaya",
+      "email": "ayse.kaya@premiumcoffee.com",
+      "phone": "5559876543",
+      "priority": 2
+    },
+    {
+      "name": "Mehmet",
+      "surname": "Demir",
+      "email": "mehmet.demir@premiumcoffee.com",
+      "phone": "5558765432",
+      "priority": 3
+    }
+  ],
+  "instagram": "@premiumcoffeehouse",
+  "facebook": "PremiumCoffeeHouseAntalya",
+  "tiktok": "@premiumcoffee_tt",
+  "googleConsoleEmail": "seo@premiumcoffee.com",
+  "seoTitleSuggestions": "Antalya'nın En İyi Kahve Deneyimi | Premium Coffee House",
+  "seoContentSuggestions": "Özel çekim kahveler, barista şampiyonları, sanatsal latte art",
+  "instagramApiKey": "INST_API_KEY_12345",
+  "facebookApiKey": "FB_API_KEY_67890",
+  "tiktokApiKey": "TT_API_KEY_ABCDE",
+  "googleApiKey": "GOOGLE_API_KEY_XYZ"
 }
 __________________________________________________________________________________________________________________
 
@@ -85,19 +92,49 @@ PATCH
 http://localhost:8081/api/customers/1
 
 {
-  "address": "Yeni Adres, Antalya",
-  "status": "PASSIVE"
+  "contacts": [
+    {
+      "name": "Zeynep",
+      "surname": "Arslan",
+      "email": "zeynep.arslan@premiumcoffee.com",
+      "phone": "5557778899",
+      "priority": 1
+    },
+    {
+      "name": "Can",
+      "surname": "Özkan",
+      "email": "can.ozkan@premiumcoffee.com",
+      "phone": "5556665544",
+      "priority": 2
+    }
+  ],
+  "postFrequency": "7",
+  "customerHashtags": "#kahve #antalya #premiumcoffee #latte #espresso"
 }
 __________________________________________________________________________________________________________________
 
 - Partial Update Customer By Company Name
 PATCH
 
-http://localhost:8081/api/customers/company/TechCoffee
-
 {
-  "address": "Yeni Adres, Antalya2",
-  "status": "PASSIVE"
+  "contacts": [
+    {
+      "name": "Zeynep",
+      "surname": "Arslan",
+      "email": "zeynep.arslan@premiumcoffee.com",
+      "phone": "5557778899",
+      "priority": 1
+    },
+    {
+      "name": "Can",
+      "surname": "Özkan",
+      "email": "can.ozkan@premiumcoffee.com",
+      "phone": "5556665544",
+      "priority": 2
+    }
+  ],
+  "postFrequency": "7",
+  "customerHashtags": "#kahve #antalya #premiumcoffee #latte #espresso"
 }
 __________________________________________________________________________________________________________________
 

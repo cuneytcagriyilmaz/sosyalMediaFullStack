@@ -1,5 +1,6 @@
 server:
   port: 8761
+  # PUBLIC - Dashboard için
 
 eureka:
   client:
@@ -7,3 +8,10 @@ eureka:
     fetch-registry: false
   server:
     wait-time-in-ms-when-sync-empty: 0
+    enable-self-preservation: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

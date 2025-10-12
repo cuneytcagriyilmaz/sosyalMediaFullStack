@@ -6,6 +6,7 @@ import com.sosyalmedia.customerservice.exception.*;
 import com.sosyalmedia.customerservice.mapper.CustomerMapper;
 import com.sosyalmedia.customerservice.repository.CustomerRepository;
 import com.sosyalmedia.customerservice.service.impl.CustomerServiceImpl;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,8 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -24,10 +26,16 @@ import static org.mockito.Mockito.*;
 class CustomerServiceImplTest {
 
     @Mock
+    private EntityManager entityManager;
+
+    @Mock
     private CustomerRepository customerRepository;
 
     @Mock
     private CustomerMapper customerMapper;
+
+    @Mock
+    private FileStorageService fileStorageService;
 
     @InjectMocks
     private CustomerServiceImpl customerService;
@@ -38,19 +46,27 @@ class CustomerServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        // ContactDTO listesi oluştur
+        List<ContactDTO> contacts = new ArrayList<>();
+        contacts.add(ContactDTO.builder()
+                .name("Ahmet")
+                .surname("Yılmaz")
+                .email("ahmet@test.com")
+                .phone("5551234567")
+                .priority(1)
+                .build());
+
         request = CustomerRequest.builder()
                 .companyName("Test Cafe")
                 .sector("cafe")
                 .address("Test Address")
                 .membershipPackage("Gold")
                 .status(Customer.CustomerStatus.ACTIVE)
+                .specialDates(false)
                 .postFrequency("2")
                 .postType("gorsel")
                 .postTone("samimi")
-                .customerContact1Name("Test")
-                .customerContact1Surname("User")
-                .customerContact1Email("test@test.com")
-                .customerContact1Phone("5551234567")
+                .contacts(contacts)  // YENİ: Liste olarak
                 .build();
 
         customer = Customer.builder()
@@ -67,6 +83,7 @@ class CustomerServiceImplTest {
                 .id(1L)
                 .companyName("Test Cafe")
                 .sector("cafe")
+                .contacts(contacts)  // YENİ: Liste olarak
                 .build();
     }
 
@@ -81,6 +98,8 @@ class CustomerServiceImplTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getCompanyName()).isEqualTo("Test Cafe");
+        assertThat(result.getContacts()).hasSize(1);
+        assertThat(result.getContacts().get(0).getName()).isEqualTo("Ahmet");
         verify(customerRepository, times(1)).save(any(Customer.class));
     }
 
@@ -104,6 +123,7 @@ class CustomerServiceImplTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getContacts()).isNotNull();
     }
 
     @Test
@@ -115,12 +135,49 @@ class CustomerServiceImplTest {
     }
 
     @Test
+    void patchCustomer_UpdateContacts_Success() {
+        // Given
+        List<ContactDTO> newContacts = new ArrayList<>();
+        newContacts.add(ContactDTO.builder()
+                .name("Ayşe")
+                .surname("Kaya")
+                .email("ayse@test.com")
+                .phone("5559876543")
+                .priority(1)
+                .build());
+        newContacts.add(ContactDTO.builder()
+                .name("Mehmet")
+                .surname("Demir")
+                .email("mehmet@test.com")
+                .phone("5558765432")
+                .priority(2)
+                .build());
+
+        CustomerUpdateRequest updateRequest = CustomerUpdateRequest.builder()
+                .contacts(newContacts)
+                .build();
+
+        when(customerRepository.findByIdWithAllRelations(1L)).thenReturn(Optional.of(customer));
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+        when(customerMapper.toResponse(any(Customer.class))).thenReturn(response);
+
+        // When
+        CustomerResponse result = customerService.patchCustomer(1L, updateRequest);
+
+        // Then
+        assertThat(result).isNotNull();
+        verify(customerRepository, times(1)).save(any(Customer.class));
+    }
+
+    @Test
     void softDeleteCustomer_Success() {
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+        doNothing().when(fileStorageService).moveCustomerFolderToDeleted(anyString());
 
         customerService.softDeleteCustomer(1L);
 
-        verify(customerRepository, times(1)).delete(customer);
+        verify(fileStorageService, times(1)).moveCustomerFolderToDeleted("Test Cafe");
+        verify(customerRepository, times(1)).save(customer);
     }
 
     @Test
@@ -129,5 +186,8 @@ class CustomerServiceImplTest {
 
         assertThatThrownBy(() -> customerService.softDeleteCustomer(1L))
                 .isInstanceOf(CustomerNotFoundException.class);
+
+        verify(fileStorageService, never()).moveCustomerFolderToDeleted(anyString());
     }
+
 }

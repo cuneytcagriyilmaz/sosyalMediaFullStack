@@ -1,18 +1,117 @@
 server:
   port: 8080
+  # PUBLIC - Default (0.0.0.0)
 
 spring:
   cloud:
     gateway:
+      # Global CORS - Vite + React için
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"      # Vite default
+              - "http://localhost:5174"      # Vite secondary
+              - "http://127.0.0.1:5173"      # Alternative
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+              - "Authorization"
+              - "Content-Type"
+              - "X-Requested-With"
+              - "Accept"
+            exposedHeaders:
+              - "Authorization"
+              - "X-Total-Count"
+              - "Content-Disposition"
+            allowCredentials: true
+            maxAge: 3600
+
+      # Routes
       routes:
+        # Customer Service (JWT ile korunacak)
         - id: customer-service
-          uri: lb://CUSTOMER-SERVICE
+          uri: lb://customer-service
           predicates:
             - Path=/api/customers/**
+          metadata:
+            auth-required: "true"
+            roles: "USER,ADMIN"
 
+        # Discovery Server Dashboard
+        - id: discovery-server
+          uri: http://localhost:8761
+          predicates:
+            - Path=/eureka/web
+          filters:
+            - SetPath=/
+          metadata:
+            auth-required: "false"
+
+        # Discovery Server Static
+        - id: discovery-server-static
+          uri: http://localhost:8761
+          predicates:
+            - Path=/eureka/**
+          metadata:
+            auth-required: "false"
+
+      # Default Filters
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY,GATEWAY_TIMEOUT
+            methods: GET,POST,PUT,PATCH,DELETE
+            backoff:
+              firstBackoff: 50ms
+              maxBackoff: 500ms
+              factor: 2
+              basedOnPreviousValue: true
+
+# JWT Config (İleride aktif edilecek)
+# jwt:
+#   secret: ${JWT_SECRET:your-super-secret-key-min-256-bits}
+#   expiration: 86400000
+#   refresh-expiration: 604800000
+
+# Eureka
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+    metadata-map:
+      public: "true"
+      security-level: "gateway"
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,routes,metrics
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    reactor.netty.http.client: INFO
+    com.sosyalmedia.apigateway: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

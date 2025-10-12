@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -55,32 +57,39 @@ public class CustomerResponse {
     @Schema(description = "Hedef ilgi alanları", example = "Kahve, Deniz")
     private String audienceInterests;
 
-    private String customerContact1Name;
-    private String customerContact1Surname;
-    private String customerContact1Email;
-    private String customerContact1Phone;
+    // YENİ: Contact listesi
+    @Schema(description = "İletişim bilgileri listesi")
+    @Builder.Default
+    private List<ContactDTO> contacts = new ArrayList<>();
 
-    private String customerContact2Name;
-    private String customerContact2Surname;
-    private String customerContact2Email;
-    private String customerContact2Phone;
-
-    private String customerContact3Name;
-    private String customerContact3Surname;
-    private String customerContact3Email;
-    private String customerContact3Phone;
-
+    @Schema(description = "Instagram")
     private String instagram;
+
+    @Schema(description = "Facebook")
     private String facebook;
+
+    @Schema(description = "TikTok")
     private String tiktok;
 
+    @Schema(description = "Google Console email")
     private String googleConsoleEmail;
+
+    @Schema(description = "SEO başlık önerileri")
     private String seoTitleSuggestions;
+
+    @Schema(description = "SEO içerik önerileri")
     private String seoContentSuggestions;
 
+    @Schema(description = "Instagram API Key")
     private String instagramApiKey;
+
+    @Schema(description = "Facebook API Key")
     private String facebookApiKey;
+
+    @Schema(description = "TikTok API Key")
     private String tiktokApiKey;
+
+    @Schema(description = "Google API Key")
     private String googleApiKey;
 
     @Schema(description = "Oluşturulma tarihi")
@@ -88,8 +97,4 @@ public class CustomerResponse {
 
     @Schema(description = "Güncellenme tarihi")
     private LocalDateTime updatedAt;
-
-    // DOSYA ALANLARI KALDIRILDI
-    // customerLogos ve customerPhotos yok artık
-    // Dosyaları görmek için GET /api/customers/{id}/files kullanılacak
 }

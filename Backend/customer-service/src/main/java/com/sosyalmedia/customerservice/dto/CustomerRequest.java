@@ -2,8 +2,13 @@ package com.sosyalmedia.customerservice.dto;
 
 import com.sosyalmedia.customerservice.entity.Customer;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -29,9 +34,11 @@ public class CustomerRequest {
     private String membershipPackage;
 
     @Schema(description = "Müşteri durumu", example = "ACTIVE", defaultValue = "ACTIVE")
+    @Builder.Default
     private Customer.CustomerStatus status = Customer.CustomerStatus.ACTIVE;
 
     @Schema(description = "Özel günler için post yapılsın mı", example = "true", defaultValue = "false")
+    @Builder.Default
     private Boolean specialDates = false;
 
     @Schema(description = "Hedef bölge", example = "Antalya, Lara")
@@ -58,45 +65,12 @@ public class CustomerRequest {
     @Schema(description = "Hedef kitle ilgi alanları", example = "Kahve, Deniz, Fotograf")
     private String audienceInterests;
 
-    @Schema(description = "Birinci yetkili adı", example = "Ahmet")
-    @NotBlank(message = "En az bir yetkili adı gerekli")
-    private String customerContact1Name;
-
-    @Schema(description = "Birinci yetkili soyadı", example = "Yılmaz")
-    @NotBlank(message = "En az bir yetkili soyadı gerekli")
-    private String customerContact1Surname;
-
-    @Schema(description = "Birinci yetkili email", example = "ahmet@sunshine.com")
-    @NotBlank(message = "En az bir yetkili email gerekli")
-    private String customerContact1Email;
-
-    @Schema(description = "Birinci yetkili telefon", example = "5551234567")
-    @NotBlank(message = "En az bir yetkili telefon gerekli")
-    private String customerContact1Phone;
-
-    @Schema(description = "İkinci yetkili adı", example = "Ayşe")
-    private String customerContact2Name;
-
-    @Schema(description = "İkinci yetkili soyadı", example = "Kaya")
-    private String customerContact2Surname;
-
-    @Schema(description = "İkinci yetkili email", example = "ayse@sunshine.com")
-    private String customerContact2Email;
-
-    @Schema(description = "İkinci yetkili telefon", example = "5552345678")
-    private String customerContact2Phone;
-
-    @Schema(description = "Üçüncü yetkili adı")
-    private String customerContact3Name;
-
-    @Schema(description = "Üçüncü yetkili soyadı")
-    private String customerContact3Surname;
-
-    @Schema(description = "Üçüncü yetkili email")
-    private String customerContact3Email;
-
-    @Schema(description = "Üçüncü yetkili telefon")
-    private String customerContact3Phone;
+    // YENİ: Contact listesi
+    @Schema(description = "İletişim bilgileri listesi (En az 1 gerekli)")
+    @NotEmpty(message = "En az bir yetkili gerekli")
+    @Valid
+    @Builder.Default
+    private List<ContactDTO> contacts = new ArrayList<>();
 
     @Schema(description = "Instagram kullanıcı adı", example = "sunshine_cafe")
     private String instagram;
@@ -127,7 +101,4 @@ public class CustomerRequest {
 
     @Schema(description = "Google API anahtarı")
     private String googleApiKey;
-
-    // DOSYA ALANLARI KALDIRILDI
-    // customerLogos ve customerPhotos yok artık
 }

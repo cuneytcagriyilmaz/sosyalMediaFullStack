@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -34,15 +35,24 @@ class CustomerControllerTest {
 
     @Test
     void createCustomer_ValidRequest_ReturnsCreated() throws Exception {
+        // ContactDTO listesi
+        List<ContactDTO> contacts = new ArrayList<>();
+        contacts.add(ContactDTO.builder()
+                .name("Test")
+                .surname("User")
+                .email("test@test.com")
+                .phone("5551234567")
+                .priority(1)
+                .build());
+
         CustomerRequest request = CustomerRequest.builder()
                 .companyName("Test Cafe")
                 .sector("cafe")
                 .address("Test Address")
                 .membershipPackage("Gold")
-                .customerContact1Name("Test")
-                .customerContact1Surname("User")
-                .customerContact1Email("test@test.com")
-                .customerContact1Phone("5551234567")
+                .status(Customer.CustomerStatus.ACTIVE)
+                .specialDates(false)
+                .contacts(contacts)  // YENİ: Liste olarak
                 .postFrequency("2")
                 .postType("gorsel")
                 .postTone("samimi")
@@ -51,6 +61,7 @@ class CustomerControllerTest {
         CustomerResponse response = CustomerResponse.builder()
                 .id(1L)
                 .companyName("Test Cafe")
+                .contacts(contacts)
                 .build();
 
         when(customerService.createCustomer(any(CustomerRequest.class))).thenReturn(response);
@@ -60,7 +71,8 @@ class CustomerControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.companyName").value("Test Cafe"));
+                .andExpect(jsonPath("$.data.companyName").value("Test Cafe"))
+                .andExpect(jsonPath("$.data.contacts[0].name").value("Test"));
     }
 
     @Test
@@ -74,10 +86,41 @@ class CustomerControllerTest {
     }
 
     @Test
+    void createCustomer_NoContacts_ReturnsBadRequest() throws Exception {
+        CustomerRequest request = CustomerRequest.builder()
+                .companyName("Test Cafe")
+                .sector("cafe")
+                .address("Test Address")
+                .membershipPackage("Gold")
+                .status(Customer.CustomerStatus.ACTIVE)
+                .specialDates(false)
+                .contacts(new ArrayList<>())  // Boş contact listesi
+                .postFrequency("2")
+                .postType("gorsel")
+                .postTone("samimi")
+                .build();
+
+        mockMvc.perform(post("/api/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void getCustomerById_Exists_ReturnsOk() throws Exception {
+        List<ContactDTO> contacts = new ArrayList<>();
+        contacts.add(ContactDTO.builder()
+                .name("Test")
+                .surname("User")
+                .email("test@test.com")
+                .phone("5551234567")
+                .priority(1)
+                .build());
+
         CustomerResponse response = CustomerResponse.builder()
                 .id(1L)
                 .companyName("Test Cafe")
+                .contacts(contacts)
                 .build();
 
         when(customerService.getCustomerById(1L)).thenReturn(response);
@@ -85,7 +128,8 @@ class CustomerControllerTest {
         mockMvc.perform(get("/api/customers/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.id").value(1));
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.contacts[0].name").value("Test"));
     }
 
     @Test
@@ -110,5 +154,38 @@ class CustomerControllerTest {
         mockMvc.perform(delete("/api/customers/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void patchCustomer_UpdateContacts_ReturnsOk() throws Exception {
+        // YENİ: Contact güncelleme testi
+        List<ContactDTO> newContacts = new ArrayList<>();
+        newContacts.add(ContactDTO.builder()
+                .name("Ayşe")
+                .surname("Kaya")
+                .email("ayse@test.com")
+                .phone("5559876543")
+                .priority(1)
+                .build());
+
+        CustomerUpdateRequest updateRequest = CustomerUpdateRequest.builder()
+                .contacts(newContacts)
+                .build();
+
+        CustomerResponse response = CustomerResponse.builder()
+                .id(1L)
+                .companyName("Test Cafe")
+                .contacts(newContacts)
+                .build();
+
+        when(customerService.patchCustomer(eq(1L), any(CustomerUpdateRequest.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(patch("/api/customers/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.contacts[0].name").value("Ayşe"));
     }
 }

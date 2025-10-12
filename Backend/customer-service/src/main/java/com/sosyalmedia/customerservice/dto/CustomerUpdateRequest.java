@@ -2,31 +2,34 @@ package com.sosyalmedia.customerservice.dto;
 
 import com.sosyalmedia.customerservice.entity.Customer;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.*;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Müşteri güncelleme isteği (Sadece gönderilen alanlar güncellenir)")
+@Schema(description = "Müşteri güncelleme isteği")
 public class CustomerUpdateRequest {
 
-    @Schema(description = "Şirket/Dükkan adı", example = "Cafe Sunshine")
+    @Schema(description = "Şirket/Dükkan adı")
     private String companyName;
 
-    @Schema(description = "Sektör", example = "cafe")
+    @Schema(description = "Sektör")
     private String sector;
 
-    @Schema(description = "Adres", example = "Yeni Adres, Antalya")
+    @Schema(description = "Adres")
     private String address;
 
-    @Schema(description = "Üyelik paketi", example = "Platinum")
+    @Schema(description = "Üyelik paketi")
     private String membershipPackage;
 
-    @Schema(description = "Müşteri durumu", example = "ACTIVE")
+    @Schema(description = "Müşteri durumu")
     private Customer.CustomerStatus status;
 
-    @Schema(description = "Özel günler için post yapılsın mı")
+    @Schema(description = "Özel günler")
     private Boolean specialDates;
 
     @Schema(description = "Hedef bölge")
@@ -50,41 +53,10 @@ public class CustomerUpdateRequest {
     @Schema(description = "Hedef ilgi alanları")
     private String audienceInterests;
 
-    @Schema(description = "Birinci yetkili adı")
-    private String customerContact1Name;
-
-    @Schema(description = "Birinci yetkili soyadı")
-    private String customerContact1Surname;
-
-    @Schema(description = "Birinci yetkili email")
-    private String customerContact1Email;
-
-    @Schema(description = "Birinci yetkili telefon")
-    private String customerContact1Phone;
-
-    @Schema(description = "İkinci yetkili adı")
-    private String customerContact2Name;
-
-    @Schema(description = "İkinci yetkili soyadı")
-    private String customerContact2Surname;
-
-    @Schema(description = "İkinci yetkili email")
-    private String customerContact2Email;
-
-    @Schema(description = "İkinci yetkili telefon")
-    private String customerContact2Phone;
-
-    @Schema(description = "Üçüncü yetkili adı")
-    private String customerContact3Name;
-
-    @Schema(description = "Üçüncü yetkili soyadı")
-    private String customerContact3Surname;
-
-    @Schema(description = "Üçüncü yetkili email")
-    private String customerContact3Email;
-
-    @Schema(description = "Üçüncü yetkili telefon")
-    private String customerContact3Phone;
+    // YENİ: Contact listesi
+    @Schema(description = "İletişim bilgileri listesi (gönderilirse tamamen değiştirilir)")
+    @Valid
+    private List<ContactDTO> contacts;
 
     @Schema(description = "Instagram")
     private String instagram;
@@ -115,6 +87,4 @@ public class CustomerUpdateRequest {
 
     @Schema(description = "Google API Key")
     private String googleApiKey;
-
-
 }

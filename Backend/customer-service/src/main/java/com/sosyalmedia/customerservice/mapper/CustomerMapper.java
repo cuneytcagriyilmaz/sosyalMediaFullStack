@@ -1,10 +1,11 @@
 package com.sosyalmedia.customerservice.mapper;
 
-import com.sosyalmedia.customerservice.dto.CustomerRequest;
-import com.sosyalmedia.customerservice.dto.CustomerResponse;
-import com.sosyalmedia.customerservice.dto.CustomerListResponse;
+import com.sosyalmedia.customerservice.dto.*;
 import com.sosyalmedia.customerservice.entity.*;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Component
 public class CustomerMapper {
@@ -33,24 +34,21 @@ public class CustomerMapper {
                 .build();
         customer.setTargetAudience(targetAudience);
 
-        // Contacts
-        addContactIfValid(customer,
-                request.getCustomerContact1Name(),
-                request.getCustomerContact1Surname(),
-                request.getCustomerContact1Email(),
-                request.getCustomerContact1Phone(), 1);
-
-        addContactIfValid(customer,
-                request.getCustomerContact2Name(),
-                request.getCustomerContact2Surname(),
-                request.getCustomerContact2Email(),
-                request.getCustomerContact2Phone(), 2);
-
-        addContactIfValid(customer,
-                request.getCustomerContact3Name(),
-                request.getCustomerContact3Surname(),
-                request.getCustomerContact3Email(),
-                request.getCustomerContact3Phone(), 3);
+        // Contacts - YENİ: Liste olarak
+        if (request.getContacts() != null && !request.getContacts().isEmpty()) {
+            for (int i = 0; i < request.getContacts().size(); i++) {
+                ContactDTO contactDTO = request.getContacts().get(i);
+                CustomerContact contact = CustomerContact.builder()
+                        .name(contactDTO.getName())
+                        .surname(contactDTO.getSurname())
+                        .email(contactDTO.getEmail())
+                        .phone(contactDTO.getPhone())
+                        .priority(contactDTO.getPriority() != null ? contactDTO.getPriority() : i + 1)
+                        .customer(customer)
+                        .build();
+                customer.getContacts().add(contact);
+            }
+        }
 
         // Social Media
         if (hasSocialMedia(request.getInstagram(), request.getFacebook(), request.getTiktok())) {
@@ -87,8 +85,6 @@ public class CustomerMapper {
             customer.setApiKey(apiKey);
         }
 
-
-
         return customer;
     }
 
@@ -117,28 +113,12 @@ public class CustomerMapper {
                     .audienceInterests(ta.getAudienceInterests());
         }
 
-        // Contacts
-        for (CustomerContact contact : customer.getContacts()) {
-            switch (contact.getPriority()) {
-                case 1:
-                    builder.customerContact1Name(contact.getName())
-                            .customerContact1Surname(contact.getSurname())
-                            .customerContact1Email(contact.getEmail())
-                            .customerContact1Phone(contact.getPhone());
-                    break;
-                case 2:
-                    builder.customerContact2Name(contact.getName())
-                            .customerContact2Surname(contact.getSurname())
-                            .customerContact2Email(contact.getEmail())
-                            .customerContact2Phone(contact.getPhone());
-                    break;
-                case 3:
-                    builder.customerContact3Name(contact.getName())
-                            .customerContact3Surname(contact.getSurname())
-                            .customerContact3Email(contact.getEmail())
-                            .customerContact3Phone(contact.getPhone());
-                    break;
-            }
+        // Contacts - YENİ: Liste olarak, priority'ye göre sıralı
+        if (customer.getContacts() != null && !customer.getContacts().isEmpty()) {
+            builder.contacts(customer.getContacts().stream()
+                    .sorted(Comparator.comparing(CustomerContact::getPriority))
+                    .map(this::toContactDTO)
+                    .collect(Collectors.toList()));
         }
 
         // Social Media
@@ -163,8 +143,6 @@ public class CustomerMapper {
                     .googleApiKey(customer.getApiKey().getGoogleApiKey());
         }
 
-
-
         return builder.build();
     }
 
@@ -180,22 +158,18 @@ public class CustomerMapper {
                 .build();
     }
 
-    // Helper Methods
-    private void addContactIfValid(Customer customer, String name, String surname,
-                                   String email, String phone, int priority) {
-        if (isNotEmpty(name) && isNotEmpty(surname) && isNotEmpty(email) && isNotEmpty(phone)) {
-            CustomerContact contact = CustomerContact.builder()
-                    .name(name)
-                    .surname(surname)
-                    .email(email)
-                    .phone(phone)
-                    .priority(priority)
-                    .customer(customer)
-                    .build();
-            customer.getContacts().add(contact);
-        }
+    // CustomerContact → ContactDTO
+    public ContactDTO toContactDTO(CustomerContact contact) {
+        return ContactDTO.builder()
+                .name(contact.getName())
+                .surname(contact.getSurname())
+                .email(contact.getEmail())
+                .phone(contact.getPhone())
+                .priority(contact.getPriority())
+                .build();
     }
 
+    // Helper Methods
     private boolean hasSocialMedia(String instagram, String facebook, String tiktok) {
         return isNotEmpty(instagram) || isNotEmpty(facebook) || isNotEmpty(tiktok);
     }
@@ -212,5 +186,4 @@ public class CustomerMapper {
     private boolean isNotEmpty(String str) {
         return str != null && !str.trim().isEmpty();
     }
-
- }
+}

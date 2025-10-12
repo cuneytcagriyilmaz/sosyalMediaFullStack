@@ -1,5 +1,6 @@
 server:
   port: 8081
+  address: 127.0.0.1
   tomcat:
     max-swallow-size: 500MB
 
@@ -19,13 +20,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-
   servlet:
     multipart:
       enabled: true
       max-file-size: 200MB
       max-request-size: 500MB
-
 
 eureka:
   client:
@@ -37,6 +36,12 @@ eureka:
     lease-expiration-duration-in-seconds: 10
   instance:
     prefer-ip-address: true
+    hostname: localhost
+    ip-address: 127.0.0.1
+    metadata-map:
+      internal: "true"
+      security-level: "private"
+      auth-delegated-to-gateway: "true"
 
 logging:
   level:
@@ -46,7 +51,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,beans,env
+        include: health,info,metrics
   endpoint:
     health:
       show-details: always
@@ -55,4 +60,3 @@ file:
   upload:
     directory: C:\Users\Approxy\Desktop\s\sosyalMediaProject\kaydedilenResimler
     allowed-extensions: jpg,jpeg,png,gif,pdf,mp4,avi,mov,doc,docx
-
