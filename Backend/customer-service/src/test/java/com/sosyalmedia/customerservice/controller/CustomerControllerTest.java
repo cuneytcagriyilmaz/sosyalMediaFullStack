@@ -36,8 +36,8 @@ class CustomerControllerTest {
     @Test
     void createCustomer_ValidRequest_ReturnsCreated() throws Exception {
         // ContactDTO listesi
-        List<ContactDTO> contacts = new ArrayList<>();
-        contacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> contacts = new ArrayList<>();
+        contacts.add(CustomerContactDTO.builder()
                 .name("Test")
                 .surname("User")
                 .email("test@test.com")
@@ -108,8 +108,8 @@ class CustomerControllerTest {
 
     @Test
     void getCustomerById_Exists_ReturnsOk() throws Exception {
-        List<ContactDTO> contacts = new ArrayList<>();
-        contacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> contacts = new ArrayList<>();
+        contacts.add(CustomerContactDTO.builder()
                 .name("Test")
                 .surname("User")
                 .email("test@test.com")
@@ -159,8 +159,8 @@ class CustomerControllerTest {
     @Test
     void patchCustomer_UpdateContacts_ReturnsOk() throws Exception {
         // YENİ: Contact güncelleme testi
-        List<ContactDTO> newContacts = new ArrayList<>();
-        newContacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> newContacts = new ArrayList<>();
+        newContacts.add(CustomerContactDTO.builder()
                 .name("Ayşe")
                 .surname("Kaya")
                 .email("ayse@test.com")

@@ -1,7 +1,7 @@
 package com.sosyalmedia.customerservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sosyalmedia.customerservice.dto.ContactDTO;
+import com.sosyalmedia.customerservice.dto.CustomerContactDTO;
 import com.sosyalmedia.customerservice.dto.CustomerRequest;
 import com.sosyalmedia.customerservice.entity.Customer;
 import com.sosyalmedia.customerservice.repository.CustomerRepository;
@@ -43,8 +43,8 @@ class CustomerControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         // ContactDTO listesi
-        List<ContactDTO> contacts = new ArrayList<>();
-        contacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> contacts = new ArrayList<>();
+        contacts.add(CustomerContactDTO.builder()
                 .name("Ahmet")
                 .surname("Yılmaz")
                 .email("ahmet@test.com")
@@ -89,22 +89,22 @@ class CustomerControllerIntegrationTest {
     @Test
     void createCustomer_WithMultipleContacts_Success() throws Exception {
         // Given - 3 contact
-        List<ContactDTO> contacts = new ArrayList<>();
-        contacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> contacts = new ArrayList<>();
+        contacts.add(CustomerContactDTO.builder()
                 .name("Ahmet")
                 .surname("Yılmaz")
                 .email("ahmet@test.com")
                 .phone("5551234567")
                 .priority(1)
                 .build());
-        contacts.add(ContactDTO.builder()
+        contacts.add(CustomerContactDTO.builder()
                 .name("Ayşe")
                 .surname("Kaya")
                 .email("ayse@test.com")
                 .phone("5559876543")
                 .priority(2)
                 .build());
-        contacts.add(ContactDTO.builder()
+        contacts.add(CustomerContactDTO.builder()
                 .name("Mehmet")
                 .surname("Demir")
                 .email("mehmet@test.com")

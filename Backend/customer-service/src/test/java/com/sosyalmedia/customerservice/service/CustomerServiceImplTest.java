@@ -47,8 +47,8 @@ class CustomerServiceImplTest {
     @BeforeEach
     void setUp() {
         // ContactDTO listesi oluştur
-        List<ContactDTO> contacts = new ArrayList<>();
-        contacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> contacts = new ArrayList<>();
+        contacts.add(CustomerContactDTO.builder()
                 .name("Ahmet")
                 .surname("Yılmaz")
                 .email("ahmet@test.com")
@@ -137,15 +137,15 @@ class CustomerServiceImplTest {
     @Test
     void patchCustomer_UpdateContacts_Success() {
         // Given
-        List<ContactDTO> newContacts = new ArrayList<>();
-        newContacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> newContacts = new ArrayList<>();
+        newContacts.add(CustomerContactDTO.builder()
                 .name("Ayşe")
                 .surname("Kaya")
                 .email("ayse@test.com")
                 .phone("5559876543")
                 .priority(1)
                 .build());
-        newContacts.add(ContactDTO.builder()
+        newContacts.add(CustomerContactDTO.builder()
                 .name("Mehmet")
                 .surname("Demir")
                 .email("mehmet@test.com")

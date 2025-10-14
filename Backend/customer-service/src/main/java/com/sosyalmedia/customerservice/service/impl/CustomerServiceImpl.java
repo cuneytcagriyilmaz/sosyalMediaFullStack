@@ -134,127 +134,120 @@ public class CustomerServiceImpl implements CustomerService {
             customer.setStatus(request.getStatus());
         }
 
-        // Target Audience
-        updateTargetAudience(customer, request);
+        // ✅ NESTED DTO'LARDAN GÜNCELLEME
 
-        // Contacts - YENİ: Liste olarak güncelleme
+        // Target Audience - YENİ: Nested DTO'dan güncelle
+        if (request.getTargetAudience() != null) {
+            updateTargetAudience(customer, request.getTargetAudience());
+        }
+
+        // Contacts - Liste olarak güncelleme
         if (request.getContacts() != null) {
             updateContacts(customer, request.getContacts());
         }
 
-        // Social Media
-        updateSocialMedia(customer, request);
+        // Social Media - YENİ: Nested DTO'dan güncelle
+        if (request.getSocialMedia() != null) {
+            updateSocialMedia(customer, request.getSocialMedia());
+        }
 
-        // SEO
-        updateSeo(customer, request);
+        // SEO - YENİ: Nested DTO'dan güncelle
+        if (request.getSeo() != null) {
+            updateSeo(customer, request.getSeo());
+        }
 
-        // API Keys
-        updateApiKeys(customer, request);
+        // API Keys - YENİ: Nested DTO'dan güncelle
+        if (request.getApiKeys() != null) {
+            updateApiKeys(customer, request.getApiKeys());
+        }
     }
 
-    private void updateTargetAudience(Customer customer, CustomerUpdateRequest request) {
+    // ========== NESTED DTO UPDATE METHODS ==========
+
+    private void updateTargetAudience(Customer customer, CustomerTargetAudienceDTO dto) {
         CustomerTargetAudience ta = customer.getTargetAudience();
         if (ta == null) {
             ta = CustomerTargetAudience.builder().customer(customer).build();
             customer.setTargetAudience(ta);
         }
 
-        if (request.getSpecialDates() != null) ta.setSpecialDates(request.getSpecialDates());
-        if (request.getTargetRegion() != null) ta.setTargetRegion(request.getTargetRegion());
-        if (request.getCustomerHashtags() != null) ta.setCustomerHashtags(request.getCustomerHashtags());
-        if (request.getPostType() != null) ta.setPostType(request.getPostType());
-        if (request.getPostFrequency() != null) ta.setPostFrequency(request.getPostFrequency());
-        if (request.getPostTone() != null) ta.setPostTone(request.getPostTone());
-        if (request.getAudienceAge() != null) ta.setAudienceAge(request.getAudienceAge());
-        if (request.getAudienceInterests() != null) ta.setAudienceInterests(request.getAudienceInterests());
+        // DTO'dan gelen tüm alanları güncelle (null kontrolü yaparak)
+        if (dto.getSpecialDates() != null) ta.setSpecialDates(dto.getSpecialDates());
+        if (dto.getTargetRegion() != null) ta.setTargetRegion(dto.getTargetRegion());
+        if (dto.getCustomerHashtags() != null) ta.setCustomerHashtags(dto.getCustomerHashtags());
+        if (dto.getPostType() != null) ta.setPostType(dto.getPostType());
+        if (dto.getPostFrequency() != null) ta.setPostFrequency(dto.getPostFrequency());
+        if (dto.getPostTone() != null) ta.setPostTone(dto.getPostTone());
+        if (dto.getAudienceAge() != null) ta.setAudienceAge(dto.getAudienceAge());
+        if (dto.getAudienceInterests() != null) ta.setAudienceInterests(dto.getAudienceInterests());
     }
 
-    private void updateContacts(Customer customer, List<ContactDTO> contactDTOs) {
+    private void updateContacts(Customer customer, List<CustomerContactDTO> contactDTOs) {
         // Mevcut contact'ları temizle
         customer.getContacts().clear();
 
         // Yeni contact'ları ekle
         for (int i = 0; i < contactDTOs.size(); i++) {
-            ContactDTO contactDTO = contactDTOs.get(i);
+            CustomerContactDTO dto = contactDTOs.get(i);
             CustomerContact contact = CustomerContact.builder()
-                    .name(contactDTO.getName())
-                    .surname(contactDTO.getSurname())
-                    .email(contactDTO.getEmail())
-                    .phone(contactDTO.getPhone())
-                    .priority(contactDTO.getPriority() != null ? contactDTO.getPriority() : i + 1)
+                    .name(dto.getName())
+                    .surname(dto.getSurname())
+                    .email(dto.getEmail())
+                    .phone(dto.getPhone())
+                    .priority(dto.getPriority() != null ? dto.getPriority() : i + 1)
                     .customer(customer)
                     .build();
             customer.getContacts().add(contact);
         }
     }
 
-    private void updateSocialMedia(Customer customer, CustomerUpdateRequest request) {
+    private void updateSocialMedia(Customer customer, CustomerSocialMediaDTO dto) {
         CustomerSocialMedia sm = customer.getSocialMedia();
-        if (sm == null && hasAnySocialMedia(request)) {
+        if (sm == null) {
             sm = CustomerSocialMedia.builder().customer(customer).build();
             customer.setSocialMedia(sm);
         }
 
-        if (sm != null) {
-            if (request.getInstagram() != null) sm.setInstagram(request.getInstagram());
-            if (request.getFacebook() != null) sm.setFacebook(request.getFacebook());
-            if (request.getTiktok() != null) sm.setTiktok(request.getTiktok());
-        }
+        // DTO'dan gelen tüm alanları güncelle (null kontrolü yaparak)
+        if (dto.getInstagram() != null) sm.setInstagram(dto.getInstagram());
+        if (dto.getFacebook() != null) sm.setFacebook(dto.getFacebook());
+        if (dto.getTiktok() != null) sm.setTiktok(dto.getTiktok());
     }
 
-    private void updateSeo(Customer customer, CustomerUpdateRequest request) {
+    private void updateSeo(Customer customer, CustomerSeoDTO dto) {
         CustomerSeo seo = customer.getSeo();
-        if (seo == null && hasAnySeo(request)) {
+        if (seo == null) {
             seo = CustomerSeo.builder().customer(customer).build();
             customer.setSeo(seo);
         }
 
-        if (seo != null) {
-            if (request.getGoogleConsoleEmail() != null) {
-                seo.setGoogleConsoleEmail(request.getGoogleConsoleEmail());
-            }
-            if (request.getSeoTitleSuggestions() != null) {
-                seo.setSeoTitleSuggestions(request.getSeoTitleSuggestions());
-            }
-            if (request.getSeoContentSuggestions() != null) {
-                seo.setSeoContentSuggestions(request.getSeoContentSuggestions());
-            }
+        // DTO'dan gelen tüm alanları güncelle (null kontrolü yaparak)
+        if (dto.getGoogleConsoleEmail() != null) {
+            seo.setGoogleConsoleEmail(dto.getGoogleConsoleEmail());
+        }
+        if (dto.getTitleSuggestions() != null) {
+            seo.setSeoTitleSuggestions(dto.getTitleSuggestions());
+        }
+        if (dto.getContentSuggestions() != null) {
+            seo.setSeoContentSuggestions(dto.getContentSuggestions());
         }
     }
 
-    private void updateApiKeys(Customer customer, CustomerUpdateRequest request) {
+    private void updateApiKeys(Customer customer, CustomerApiKeyDTO dto) {
         CustomerApiKey ak = customer.getApiKey();
-        if (ak == null && hasAnyApiKey(request)) {
+        if (ak == null) {
             ak = CustomerApiKey.builder().customer(customer).build();
             customer.setApiKey(ak);
         }
 
-        if (ak != null) {
-            if (request.getInstagramApiKey() != null) ak.setInstagramApiKey(request.getInstagramApiKey());
-            if (request.getFacebookApiKey() != null) ak.setFacebookApiKey(request.getFacebookApiKey());
-            if (request.getTiktokApiKey() != null) ak.setTiktokApiKey(request.getTiktokApiKey());
-            if (request.getGoogleApiKey() != null) ak.setGoogleApiKey(request.getGoogleApiKey());
-        }
+        // DTO'dan gelen tüm alanları güncelle (null kontrolü yaparak)
+        if (dto.getInstagramApiKey() != null) ak.setInstagramApiKey(dto.getInstagramApiKey());
+        if (dto.getFacebookApiKey() != null) ak.setFacebookApiKey(dto.getFacebookApiKey());
+        if (dto.getTiktokApiKey() != null) ak.setTiktokApiKey(dto.getTiktokApiKey());
+        if (dto.getGoogleApiKey() != null) ak.setGoogleApiKey(dto.getGoogleApiKey());
     }
 
-    private boolean hasAnySocialMedia(CustomerUpdateRequest request) {
-        return request.getInstagram() != null ||
-                request.getFacebook() != null ||
-                request.getTiktok() != null;
-    }
-
-    private boolean hasAnySeo(CustomerUpdateRequest request) {
-        return request.getGoogleConsoleEmail() != null ||
-                request.getSeoTitleSuggestions() != null ||
-                request.getSeoContentSuggestions() != null;
-    }
-
-    private boolean hasAnyApiKey(CustomerUpdateRequest request) {
-        return request.getInstagramApiKey() != null ||
-                request.getFacebookApiKey() != null ||
-                request.getTiktokApiKey() != null ||
-                request.getGoogleApiKey() != null;
-    }
+    // ========== SOFT/HARD DELETE METHODS (Değişiklik yok) ==========
 
     @Override
     @Transactional

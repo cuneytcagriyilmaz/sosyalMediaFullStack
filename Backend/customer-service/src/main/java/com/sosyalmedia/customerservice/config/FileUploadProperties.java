@@ -12,4 +12,5 @@ import java.util.List;
 public class FileUploadProperties {
     private String directory;
     private List<String> allowedExtensions;
+    private String baseUrl;
 }

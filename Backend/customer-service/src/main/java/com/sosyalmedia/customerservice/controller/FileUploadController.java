@@ -2,63 +2,82 @@ package com.sosyalmedia.customerservice.controller;
 
 import com.sosyalmedia.customerservice.config.FileUploadProperties;
 import com.sosyalmedia.customerservice.dto.ApiResponse;
+import com.sosyalmedia.customerservice.dto.CustomerMediaDTO;
 import com.sosyalmedia.customerservice.entity.Customer;
 import com.sosyalmedia.customerservice.entity.CustomerMedia;
 import com.sosyalmedia.customerservice.exception.CustomerNotFoundException;
+import com.sosyalmedia.customerservice.mapper.CustomerMapper;
 import com.sosyalmedia.customerservice.repository.CustomerMediaRepository;
 import com.sosyalmedia.customerservice.repository.CustomerRepository;
 import com.sosyalmedia.customerservice.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/customers/{customerId}/files")
+@RequestMapping("/api/customers/{customerId}/media")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
-@Tag(name = "File Management", description = "Dosya yükleme ve yönetim")
+@Tag(name = "Media Management", description = "Müşteri Medya Yönetimi")
 public class FileUploadController {
 
     private final FileStorageService fileStorageService;
     private final CustomerRepository customerRepository;
     private final CustomerMediaRepository mediaRepository;
     private final FileUploadProperties fileUploadProperties;
+    private final CustomerMapper customerMapper;
 
-    @PostMapping("/logos")
+    // ========== TEK ENDPOINT İLE TÜM TİPLER ==========
+
+    @PostMapping("/upload")
     @Transactional
-    @Operation(summary = "Logo yükle")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> uploadLogo(
+    @Operation(summary = "Medya yükle", description = "Logo, fotoğraf, video veya doküman yükler")
+    public ResponseEntity<ApiResponse<CustomerMediaDTO>> uploadMedia(
+            @Parameter(description = "Müşteri ID", required = true)
             @PathVariable Long customerId,
-            @RequestParam("file") MultipartFile file) {
 
+            @Parameter(description = "Dosya", required = true)
+            @RequestParam("file") MultipartFile file,
+
+            @Parameter(description = "Medya türü (LOGO, PHOTO, VIDEO, DOCUMENT)", required = true)
+            @RequestParam("mediaType") CustomerMedia.MediaType mediaType) {
+
+        log.info("Uploading media for customer ID: {}, type: {}, file: {}",
+                customerId, mediaType, file.getOriginalFilename());
+
+        // 1. Müşteriyi bul
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
-        String filePath = fileStorageService.storeFile(file, customer.getCompanyName(), "logos");
+        // 2. Dosyayı fiziksel olarak kaydet
+        String fileType = mediaType.toString().toLowerCase() + "s"; // LOGO -> logos
+        String filePath = fileStorageService.storeFile(file, customer.getCompanyName(), fileType);
 
+        // 3. DB'ye kaydet
         CustomerMedia media = CustomerMedia.builder()
                 .filePath(filePath)
-                .mediaType(CustomerMedia.MediaType.LOGO)
+                .mediaType(mediaType)
                 .originalFileName(file.getOriginalFilename())
                 .fileSize(file.getSize())
                 .customer(customer)
@@ -66,149 +85,40 @@ public class FileUploadController {
 
         CustomerMedia savedMedia = mediaRepository.save(media);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("mediaId", savedMedia.getId());
-        response.put("filePath", filePath);
-        response.put("fileName", file.getOriginalFilename());
-        response.put("size", file.getSize());
+        log.info("Media uploaded successfully - ID: {}, Path: {}", savedMedia.getId(), filePath);
 
-        log.info("Logo uploaded - Customer: {}, Media ID: {}", customer.getCompanyName(), savedMedia.getId());
+        // 4. DTO'ya çevir (fullUrl dahil)
+        CustomerMediaDTO response = customerMapper.toMediaDTO(savedMedia);
 
-        return ResponseEntity.ok(ApiResponse.success("Logo yüklendi", response));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Medya başarıyla yüklendi", response));
     }
 
-    @PostMapping("/photos")
+    // ========== ÇOKLU DOSYA YÜKLEME ==========
+
+    @PostMapping("/upload-batch")
     @Transactional
-    @Operation(summary = "Fotoğraf yükle")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> uploadPhoto(
-            @PathVariable Long customerId,
-            @RequestParam("file") MultipartFile file) {
-
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId));
-
-        String filePath = fileStorageService.storeFile(file, customer.getCompanyName(), "photos");
-
-        CustomerMedia media = CustomerMedia.builder()
-                .filePath(filePath)
-                .mediaType(CustomerMedia.MediaType.PHOTO)
-                .originalFileName(file.getOriginalFilename())
-                .fileSize(file.getSize())
-                .customer(customer)
-                .build();
-
-        CustomerMedia savedMedia = mediaRepository.save(media);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("mediaId", savedMedia.getId());
-        response.put("filePath", filePath);
-        response.put("fileName", file.getOriginalFilename());
-        response.put("size", file.getSize());
-
-        return ResponseEntity.ok(ApiResponse.success("Fotoğraf yüklendi", response));
-    }
-
-    @PostMapping("/videos")
-    @Transactional
-    @Operation(summary = "Video yükle")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> uploadVideo(
-            @PathVariable Long customerId,
-            @RequestParam("file") MultipartFile file) {
-
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId));
-
-        String filePath = fileStorageService.storeFile(file, customer.getCompanyName(), "videos");
-
-        CustomerMedia media = CustomerMedia.builder()
-                .filePath(filePath)
-                .mediaType(CustomerMedia.MediaType.VIDEO)
-                .originalFileName(file.getOriginalFilename())
-                .fileSize(file.getSize())
-                .customer(customer)
-                .build();
-
-        CustomerMedia savedMedia = mediaRepository.save(media);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("mediaId", savedMedia.getId());
-        response.put("filePath", filePath);
-        response.put("fileName", file.getOriginalFilename());
-        response.put("size", file.getSize());
-
-        return ResponseEntity.ok(ApiResponse.success("Video yüklendi", response));
-    }
-
-    @PostMapping("/documents")
-    @Transactional
-    @Operation(summary = "Doküman yükle")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> uploadDocument(
-            @PathVariable Long customerId,
-            @RequestParam("file") MultipartFile file) {
-
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId));
-
-        String filePath = fileStorageService.storeFile(file, customer.getCompanyName(), "documents");
-
-        CustomerMedia media = CustomerMedia.builder()
-                .filePath(filePath)
-                .mediaType(CustomerMedia.MediaType.DOCUMENT)
-                .originalFileName(file.getOriginalFilename())
-                .fileSize(file.getSize())
-                .customer(customer)
-                .build();
-
-        CustomerMedia savedMedia = mediaRepository.save(media);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("mediaId", savedMedia.getId());
-        response.put("filePath", filePath);
-        response.put("fileName", file.getOriginalFilename());
-        response.put("size", file.getSize());
-
-        return ResponseEntity.ok(ApiResponse.success("Doküman yüklendi", response));
-    }
-
-    @PostMapping("/batch")
-    @Transactional
-    @Operation(summary = "Çoklu dosya yükle")
+    @Operation(summary = "Çoklu medya yükle")
     public ResponseEntity<ApiResponse<Map<String, Object>>> uploadMultiple(
             @PathVariable Long customerId,
-            @RequestParam("type") String type,
-            @RequestParam("files") List<MultipartFile> files) {
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestParam("mediaType") CustomerMedia.MediaType mediaType) {
 
-        // DEBUG LOGLARI
-        log.info("=== BATCH UPLOAD DEBUG ===");
-        log.info("Customer ID: {}", customerId);
-        log.info("Type: {}", type);
-        log.info("Files count received: {}", files.size());
-        for (int i = 0; i < files.size(); i++) {
-            log.info("File {}: {} ({} bytes)", i + 1, files.get(i).getOriginalFilename(), files.get(i).getSize());
-        }
-        log.info("==========================");
+        log.info("Batch upload - Customer ID: {}, Type: {}, Files count: {}",
+                customerId, mediaType, files.size());
 
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
-        // type validation
-        if (!List.of("logos", "photos", "videos", "documents").contains(type)) {
-            throw new IllegalArgumentException("Geçersiz tip: " + type);
-        }
-
-        CustomerMedia.MediaType mediaType = switch (type) {
-            case "logos" -> CustomerMedia.MediaType.LOGO;
-            case "photos" -> CustomerMedia.MediaType.PHOTO;
-            case "videos" -> CustomerMedia.MediaType.VIDEO;
-            default -> CustomerMedia.MediaType.DOCUMENT;
-        };
-
-        List<Map<String, Object>> uploadedFiles = new ArrayList<>();
+        List<CustomerMediaDTO> uploadedFiles = new ArrayList<>();
+        String fileType = mediaType.toString().toLowerCase() + "s";
 
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                String filePath = fileStorageService.storeFile(file, customer.getCompanyName(), type);
+                // Dosyayı kaydet
+                String filePath = fileStorageService.storeFile(file, customer.getCompanyName(), fileType);
 
+                // DB'ye kaydet
                 CustomerMedia media = CustomerMedia.builder()
                         .filePath(filePath)
                         .mediaType(mediaType)
@@ -218,50 +128,27 @@ public class FileUploadController {
                         .build();
 
                 CustomerMedia savedMedia = mediaRepository.save(media);
-
-                Map<String, Object> fileInfo = new HashMap<>();
-                fileInfo.put("mediaId", savedMedia.getId());
-                fileInfo.put("fileName", file.getOriginalFilename());
-                fileInfo.put("filePath", filePath);
-                fileInfo.put("size", file.getSize());
-                uploadedFiles.add(fileInfo);
+                uploadedFiles.add(customerMapper.toMediaDTO(savedMedia));
             }
         }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("uploadedCount", uploadedFiles.size());
-        response.put("files", uploadedFiles);
+        Map<String, Object> response = Map.of(
+                "uploadedCount", uploadedFiles.size(),
+                "files", uploadedFiles
+        );
 
-        return ResponseEntity.ok(ApiResponse.success(uploadedFiles.size() + " dosya yüklendi", response));
+        log.info("Batch upload completed - {} files uploaded", uploadedFiles.size());
+
+        return ResponseEntity.ok(ApiResponse.success(
+                uploadedFiles.size() + " dosya yüklendi", response));
     }
 
-    @DeleteMapping("/{mediaId}")
-    @Transactional
-    @Operation(summary = "Dosya sil")
-    public ResponseEntity<ApiResponse<Void>> deleteFile(
-            @PathVariable Long customerId,
-            @PathVariable Long mediaId) {
-
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId));
-
-        CustomerMedia media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new RuntimeException("Media bulunamadı: " + mediaId));
-
-        if (!media.getCustomer().getId().equals(customerId)) {
-            throw new RuntimeException("Bu dosya bu müşteriye ait değil");
-        }
-
-        fileStorageService.deleteFile(media.getFilePath());
-        mediaRepository.delete(media);
-
-        return ResponseEntity.ok(ApiResponse.success("Dosya silindi", null));
-    }
+    // ========== MEDYA LİSTELE ==========
 
     @GetMapping
     @Transactional(readOnly = true)
-    @Operation(summary = "Dosyaları listele")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> listFiles(
+    @Operation(summary = "Müşteri medyalarını listele")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> listMedia(
             @PathVariable Long customerId) {
 
         customerRepository.findById(customerId)
@@ -269,102 +156,87 @@ public class FileUploadController {
 
         List<CustomerMedia> allMedia = mediaRepository.findByCustomerId(customerId);
 
-        List<Map<String, Object>> logos = allMedia.stream()
-                .filter(m -> m.getMediaType() == CustomerMedia.MediaType.LOGO)
-                .map(this::mapMedia)
-                .toList();
+        // Tipe göre grupla ve DTO'ya çevir
+        Map<CustomerMedia.MediaType, List<CustomerMediaDTO>> groupedMedia = allMedia.stream()
+                .collect(Collectors.groupingBy(
+                        CustomerMedia::getMediaType,
+                        Collectors.mapping(customerMapper::toMediaDTO, Collectors.toList())
+                ));
 
-        List<Map<String, Object>> photos = allMedia.stream()
-                .filter(m -> m.getMediaType() == CustomerMedia.MediaType.PHOTO)
-                .map(this::mapMedia)
-                .toList();
-
-        List<Map<String, Object>> videos = allMedia.stream()
-                .filter(m -> m.getMediaType() == CustomerMedia.MediaType.VIDEO)
-                .map(this::mapMedia)
-                .toList();
-
-        List<Map<String, Object>> documents = allMedia.stream()
-                .filter(m -> m.getMediaType() == CustomerMedia.MediaType.DOCUMENT)
-                .map(this::mapMedia)
-                .toList();
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("logos", logos);
-        response.put("photos", photos);
-        response.put("videos", videos);
-        response.put("documents", documents);
-        response.put("totalFiles", allMedia.size());
+        Map<String, Object> response = Map.of(
+                "logos", groupedMedia.getOrDefault(CustomerMedia.MediaType.LOGO, List.of()),
+                "photos", groupedMedia.getOrDefault(CustomerMedia.MediaType.PHOTO, List.of()),
+                "videos", groupedMedia.getOrDefault(CustomerMedia.MediaType.VIDEO, List.of()),
+                "documents", groupedMedia.getOrDefault(CustomerMedia.MediaType.DOCUMENT, List.of()),
+                "totalFiles", allMedia.size()
+        );
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    private Map<String, Object> mapMedia(CustomerMedia m) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", m.getId());
-        map.put("filePath", m.getFilePath());
-        map.put("fileName", m.getOriginalFileName());
-        map.put("size", m.getFileSize());
-        map.put("type", m.getMediaType());
-        return map;
+    // ========== MEDYA SİL ==========
+
+    @DeleteMapping("/{mediaId}")
+    @Transactional
+    @Operation(summary = "Medya sil")
+    public ResponseEntity<ApiResponse<Void>> deleteMedia(
+            @PathVariable Long customerId,
+            @PathVariable Long mediaId) {
+
+        customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+
+        CustomerMedia media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new RuntimeException("Media bulunamadı: " + mediaId));
+
+        if (!media.getCustomer().getId().equals(customerId)) {
+            throw new RuntimeException("Bu medya bu müşteriye ait değil");
+        }
+
+        // 1. Fiziksel dosyayı sil
+        fileStorageService.deleteFile(media.getFilePath());
+
+        // 2. DB'den sil
+        mediaRepository.delete(media);
+
+        log.info("Media deleted - ID: {}, Path: {}", mediaId, media.getFilePath());
+
+        return ResponseEntity.ok(ApiResponse.success("Medya silindi", null));
     }
+
+    // ========== DOSYA İNDİR ==========
 
     @GetMapping("/download/{mediaId}")
-    @Operation(summary = "Dosya indir")
-    public ResponseEntity<Resource> downloadFile(
+    @Operation(summary = "Medya indir")
+    public ResponseEntity<Resource> downloadMedia(
             @PathVariable Long customerId,
             @PathVariable Long mediaId) {
 
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId));
-
-        CustomerMedia media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new RuntimeException("Media bulunamadı: " + mediaId));
-
-        if (!media.getCustomer().getId().equals(customerId)) {
-            throw new RuntimeException("Bu dosya bu müşteriye ait değil");
-        }
-
-        try {
-            Path filePath = Paths.get(fileUploadProperties.getDirectory())
-                    .resolve(media.getFilePath());
-
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new RuntimeException("Dosya okunamıyor: " + media.getFilePath());
-            }
-
-            String contentType = Files.probeContentType(filePath);
-            if (contentType == null) {
-                contentType = "application/octet-stream";
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + media.getOriginalFileName() + "\"")
-                    .body(resource);
-
-        } catch (IOException e) {
-            throw new RuntimeException("Dosya indirilemedi: " + e.getMessage());
-        }
+        return serveFile(customerId, mediaId, true);
     }
 
+    // ========== DOSYA GÖRÜNTÜLE ==========
+
     @GetMapping("/view/{mediaId}")
-    @Operation(summary = "Dosyayı tarayıcıda görüntüle")
-    public ResponseEntity<Resource> viewFile(
+    @Operation(summary = "Medyayı tarayıcıda görüntüle")
+    public ResponseEntity<Resource> viewMedia(
             @PathVariable Long customerId,
             @PathVariable Long mediaId) {
 
-        Customer customer = customerRepository.findById(customerId)
+        return serveFile(customerId, mediaId, false);
+    }
+
+    // ========== HELPER METHOD ==========
+
+    private ResponseEntity<Resource> serveFile(Long customerId, Long mediaId, boolean forceDownload) {
+        customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
         CustomerMedia media = mediaRepository.findById(mediaId)
                 .orElseThrow(() -> new RuntimeException("Media bulunamadı: " + mediaId));
 
         if (!media.getCustomer().getId().equals(customerId)) {
-            throw new RuntimeException("Bu dosya bu müşteriye ait değil");
+            throw new RuntimeException("Bu medya bu müşteriye ait değil");
         }
 
         try {
@@ -382,14 +254,16 @@ public class FileUploadController {
                 contentType = "application/octet-stream";
             }
 
+            String disposition = forceDownload ? "attachment" : "inline";
+
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "inline; filename=\"" + media.getOriginalFileName() + "\"")
+                            disposition + "; filename=\"" + media.getOriginalFileName() + "\"")
                     .body(resource);
 
         } catch (IOException e) {
-            throw new RuntimeException("Dosya görüntülenemedi: " + e.getMessage());
+            throw new RuntimeException("Dosya işlenemedi: " + e.getMessage());
         }
     }
 }

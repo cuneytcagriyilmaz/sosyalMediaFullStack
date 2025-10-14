@@ -1,14 +1,12 @@
 package com.sosyalmedia.customerservice.mapper;
 
-import com.sosyalmedia.customerservice.dto.ContactDTO;
+import com.sosyalmedia.customerservice.dto.CustomerContactDTO;
 import com.sosyalmedia.customerservice.dto.CustomerRequest;
 import com.sosyalmedia.customerservice.dto.CustomerResponse;
-import com.sosyalmedia.customerservice.dto.CustomerListResponse;
 import com.sosyalmedia.customerservice.entity.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -28,8 +26,8 @@ class CustomerMapperTest {
     @Test
     void toEntity_shouldMapBasicFields() {
         // Given
-        List<ContactDTO> contacts = new ArrayList<>();
-        contacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> contacts = new ArrayList<>();
+        contacts.add(CustomerContactDTO.builder()
                 .name("Ahmet")
                 .surname("Yilmaz")
                 .email("test@test.com")
@@ -64,15 +62,15 @@ class CustomerMapperTest {
     @Test
     void toEntity_shouldMapContactsList() {
         // Given
-        List<ContactDTO> contacts = new ArrayList<>();
-        contacts.add(ContactDTO.builder()
+        List<CustomerContactDTO> contacts = new ArrayList<>();
+        contacts.add(CustomerContactDTO.builder()
                 .name("Ahmet")
                 .surname("Yilmaz")
                 .email("ahmet@test.com")
                 .phone("5551234567")
                 .priority(1)
                 .build());
-        contacts.add(ContactDTO.builder()
+        contacts.add(CustomerContactDTO.builder()
                 .name("Ayse")
                 .surname("Kaya")
                 .email("ayse@test.com")
@@ -163,7 +161,7 @@ class CustomerMapperTest {
                 .build();
 
         // When
-        ContactDTO dto = customerMapper.toContactDTO(contact);
+        CustomerContactDTO dto = customerMapper.toContactDTO(contact);
 
         // Then
         assertNotNull(dto);

@@ -33,64 +33,25 @@ public class CustomerResponse {
     @Schema(description = "Durum", example = "ACTIVE")
     private Customer.CustomerStatus status;
 
-    @Schema(description = "Özel günler aktif mi", example = "true")
-    private Boolean specialDates;
+    @Schema(description = "Hedef kitle ve içerik tercihleri")
+    private CustomerTargetAudienceDTO targetAudience;
 
-    @Schema(description = "Hedef bölge", example = "Antalya")
-    private String targetRegion;
-
-    @Schema(description = "Hashtagler", example = "#kahve #antalya")
-    private String customerHashtags;
-
-    @Schema(description = "Post türü", example = "gorsel")
-    private String postType;
-
-    @Schema(description = "Post sıklığı", example = "2")
-    private String postFrequency;
-
-    @Schema(description = "Post tonu", example = "samimi")
-    private String postTone;
-
-    @Schema(description = "Hedef yaş", example = "20-45")
-    private String audienceAge;
-
-    @Schema(description = "Hedef ilgi alanları", example = "Kahve, Deniz")
-    private String audienceInterests;
-
-    // YENİ: Contact listesi
     @Schema(description = "İletişim bilgileri listesi")
     @Builder.Default
-    private List<ContactDTO> contacts = new ArrayList<>();
+    private List<CustomerContactDTO> contacts = new ArrayList<>();
 
-    @Schema(description = "Instagram")
-    private String instagram;
+    @Schema(description = "Sosyal medya hesapları")
+    private CustomerSocialMediaDTO socialMedia;
 
-    @Schema(description = "Facebook")
-    private String facebook;
+    @Schema(description = "SEO bilgileri")
+    private CustomerSeoDTO seo;
 
-    @Schema(description = "TikTok")
-    private String tiktok;
+    @Schema(description = "API anahtarları")
+    private CustomerApiKeyDTO apiKeys;
 
-    @Schema(description = "Google Console email")
-    private String googleConsoleEmail;
-
-    @Schema(description = "SEO başlık önerileri")
-    private String seoTitleSuggestions;
-
-    @Schema(description = "SEO içerik önerileri")
-    private String seoContentSuggestions;
-
-    @Schema(description = "Instagram API Key")
-    private String instagramApiKey;
-
-    @Schema(description = "Facebook API Key")
-    private String facebookApiKey;
-
-    @Schema(description = "TikTok API Key")
-    private String tiktokApiKey;
-
-    @Schema(description = "Google API Key")
-    private String googleApiKey;
+    @Schema(description = "Medya dosyaları (logo, fotoğraf, video, döküman)")
+    @Builder.Default
+    private List<CustomerMediaDTO> media = new ArrayList<>();
 
     @Schema(description = "Oluşturulma tarihi")
     private LocalDateTime createdAt;

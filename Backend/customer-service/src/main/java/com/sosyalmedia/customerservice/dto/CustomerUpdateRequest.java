@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Müşteri güncelleme isteği")
+@Schema(description = "Müşteri güncelleme isteği - Tüm alanlar opsiyonel, sadece gönderilen alanlar güncellenir")
 public class CustomerUpdateRequest {
 
     @Schema(description = "Şirket/Dükkan adı")
@@ -29,62 +29,24 @@ public class CustomerUpdateRequest {
     @Schema(description = "Müşteri durumu")
     private Customer.CustomerStatus status;
 
-    @Schema(description = "Özel günler")
-    private Boolean specialDates;
-
-    @Schema(description = "Hedef bölge")
-    private String targetRegion;
-
-    @Schema(description = "Hashtagler")
-    private String customerHashtags;
-
-    @Schema(description = "Post türü")
-    private String postType;
-
-    @Schema(description = "Post sıklığı")
-    private String postFrequency;
-
-    @Schema(description = "Post tonu")
-    private String postTone;
-
-    @Schema(description = "Hedef yaş")
-    private String audienceAge;
-
-    @Schema(description = "Hedef ilgi alanları")
-    private String audienceInterests;
-
-    // YENİ: Contact listesi
-    @Schema(description = "İletişim bilgileri listesi (gönderilirse tamamen değiştirilir)")
+    // ✅ NESTED DTO'LAR (Tümü opsiyonel - null ise güncellenmez)
+    @Schema(description = "Hedef kitle ve içerik tercihleri (Gönderilirse tamamen değiştirilir)")
     @Valid
-    private List<ContactDTO> contacts;
+    private CustomerTargetAudienceDTO targetAudience;
 
-    @Schema(description = "Instagram")
-    private String instagram;
+    @Schema(description = "İletişim bilgileri listesi (Gönderilirse tamamen değiştirilir)")
+    @Valid
+    private List<CustomerContactDTO> contacts;
 
-    @Schema(description = "Facebook")
-    private String facebook;
+    @Schema(description = "Sosyal medya hesapları (Gönderilirse tamamen değiştirilir)")
+    @Valid
+    private CustomerSocialMediaDTO socialMedia;
 
-    @Schema(description = "TikTok")
-    private String tiktok;
+    @Schema(description = "SEO bilgileri (Gönderilirse tamamen değiştirilir)")
+    @Valid
+    private CustomerSeoDTO seo;
 
-    @Schema(description = "Google Console Email")
-    private String googleConsoleEmail;
-
-    @Schema(description = "SEO başlık")
-    private String seoTitleSuggestions;
-
-    @Schema(description = "SEO içerik")
-    private String seoContentSuggestions;
-
-    @Schema(description = "Instagram API Key")
-    private String instagramApiKey;
-
-    @Schema(description = "Facebook API Key")
-    private String facebookApiKey;
-
-    @Schema(description = "TikTok API Key")
-    private String tiktokApiKey;
-
-    @Schema(description = "Google API Key")
-    private String googleApiKey;
+    @Schema(description = "API anahtarları (Gönderilirse tamamen değiştirilir)")
+    @Valid
+    private CustomerApiKeyDTO apiKeys;
 }
