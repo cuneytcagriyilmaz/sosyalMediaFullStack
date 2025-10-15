@@ -23,7 +23,7 @@ import java.util.List;
 @RequestMapping("/api/customers")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
+
 @Tag(name = "Customer Management", description = "Müşteri Yönetimi API'leri")
 public class CustomerController {
 

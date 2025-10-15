@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/customers/{customerId}/media")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
+
 @Tag(name = "Media Management", description = "Müşteri Medya Yönetimi")
 public class FileUploadController {
 

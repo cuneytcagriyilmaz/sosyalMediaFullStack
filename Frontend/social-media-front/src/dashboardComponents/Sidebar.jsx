@@ -1,3 +1,4 @@
+// Sidebar.jsx
 import { useState } from "react";
 
 export default function Sidebar({ activeMenu, setActiveMenu }) {
@@ -17,6 +18,7 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
             <span className="text-lg mr-2">👥</span> Müşteri İşlemleri
             <span className="ml-auto">{customerMenuOpen ? "▲" : "▼"}</span>
           </button>
+
 
           {customerMenuOpen && (
             <div className="pl-4 mt-1 space-y-1">
@@ -62,6 +64,20 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
             </div>
           )}
         </div>
+        
+        <button
+          onClick={() => setActiveMenu("silinimisMusteriler")}
+          className="block p-2 rounded-lg hover:bg-indigo-200 text-gray-700 w-full text-left"
+        >
+          Silinmiş Müşteriler
+        </button>
+
+        <button
+          onClick={() => setActiveMenu("medyaYonetimi")}
+          className="block p-2 rounded-lg hover:bg-indigo-200 text-gray-700 w-full text-left"
+        >
+          Medya Yönetimi
+        </button>
         <button
           onClick={() => setActiveMenu("takvim")}
           className="flex items-center w-full p-2 rounded-lg hover:bg-indigo-50 transition text-gray-800"

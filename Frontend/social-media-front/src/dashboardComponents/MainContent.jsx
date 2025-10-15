@@ -1,3 +1,4 @@
+// MainContent.jsx
 import CustomerAddForm from "../components/customerComponents/CustomerAddForm";
 import CustomerDeleteForm from "../components/customerComponents/CustomerDeleteForm";
 import CustomerUpdateForm from "../components/customerComponents/CustomerUpdateForm";
@@ -32,7 +33,7 @@ export default function MainContent({ activeMenu }) {
             {activeMenu === "musteriGoruntule" && (
                 <section className="bg-white shadow-lg rounded-xl overflow-hidden p-4">
                     <h2 className="text-lg font-semibold text-indigo-700 mb-2">👥 Müşteri Görüntüleme</h2>
-                
+
                     <CustomerView />
                 </section>
             )}
@@ -62,6 +63,18 @@ export default function MainContent({ activeMenu }) {
                 <section className="bg-white shadow-lg rounded-xl overflow-hidden p-4">
                     <h2 className="text-lg font-semibold text-indigo-700 mb-4">👥 Müşteri Güncelle</h2>
                     <CustomerUpdateForm />
+                </section>
+            )}
+            
+            {activeMenu === "silinimisMusteriler" && (
+                <section className="bg-white shadow-lg rounded-xl overflow-hidden p-4">
+                    <CustomerRestore />
+                </section>
+            )}
+
+            {activeMenu === "medyaYonetimi" && (
+                <section className="bg-white shadow-lg rounded-xl overflow-hidden p-4">
+                    <CustomerMediaManager />
                 </section>
             )}
 

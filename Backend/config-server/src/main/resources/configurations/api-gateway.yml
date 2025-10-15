@@ -1,7 +1,8 @@
 server:
   port: 8080
   # PUBLIC - Default (0.0.0.0)
-  address: 127.0.0.1
+  #  address: 127.0.0.1
+  address: 0.0.0.0
 
 spring:
   cloud:
@@ -11,9 +12,7 @@ spring:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - "http://localhost:5173"      # Vite default
-              - "http://localhost:5174"      # Vite secondary
-              - "http://127.0.0.1:5173"      # Alternative
+              - "http://localhost:5173"
             allowedMethods:
               - GET
               - POST
@@ -33,6 +32,8 @@ spring:
               - "Content-Disposition"
             allowCredentials: true
             maxAge: 3600
+        add-to-simple-url-handler-mapping: true
+
 
       # Routes
       routes:
