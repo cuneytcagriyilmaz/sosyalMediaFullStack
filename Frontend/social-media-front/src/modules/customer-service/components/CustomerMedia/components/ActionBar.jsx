@@ -1,5 +1,7 @@
 // modules/customer-service/components/CustomerMedia/components/ActionBar.jsx
 import { useState } from 'react';
+import { useToast } from '../../../../../shared/context/ToastContext';
+import { useModal } from '../../../../../shared/context/ModalContext';
 import customerService from '../../../services/customerService';
 
 export default function ActionBar({ 
@@ -10,7 +12,8 @@ export default function ActionBar({
   onSuccess 
 }) {
   const [loading, setLoading] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { toast } = useToast();
+  const { confirm } = useModal();
 
   const handleDownloadZip = async () => {
     setLoading(true);
@@ -18,142 +21,117 @@ export default function ActionBar({
       const mediaIds = selectedFiles.map(f => f.id);
       const response = await customerService.downloadMediaAsZip(customerId, mediaIds);
 
+      // Blob oluştur ve indir
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `musteri-${customerId}-medya.zip`);
       document.body.appendChild(link);
       link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      
+      // Cleanup - kısa bir gecikme ile
+      setTimeout(() => {
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success(`${selectedCount} dosya ZIP olarak indirildi!`);
+        onClearSelection();
+      }, 100);
 
-      alert(`✅ ${selectedCount} dosya ZIP olarak indirildi!`);
-      onClearSelection();
     } catch (error) {
       console.error('ZIP indirme hatası:', error);
-      alert('❌ ZIP indirilemedi. Tek tek indirmeyi deneyin.');
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error('ZIP indirilemedi: ' + errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteSelected = async () => {
-    setLoading(true);
-    try {
-      const mediaIds = selectedFiles.map(f => f.id);
-      await Promise.all(
-        mediaIds.map(id => customerService.deleteMedia(customerId, id))
-      );
+    await confirm({
+      title: 'Toplu Dosya Silme',
+      message: `${selectedCount} dosyayı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!`,
+      confirmText: 'Evet, Hepsini Sil',
+      cancelText: 'İptal',
+      type: 'danger',
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          const mediaIds = selectedFiles.map(f => f.id);
+          await Promise.all(
+            mediaIds.map(id => customerService.deleteMedia(customerId, id))
+          );
 
-      alert(`✅ ${selectedCount} dosya silindi!`);
-      setShowDeleteConfirm(false);
-      onSuccess();
-    } catch (error) {
-      console.error('Silme hatası:', error);
-      alert('❌ Bazı dosyalar silinemedi.');
-    } finally {
-      setLoading(false);
-    }
+          toast.success(`${selectedCount} dosya başarıyla silindi!`);
+          onSuccess();
+        } catch (error) {
+          console.error('Silme hatası:', error);
+          const errorMsg = error.response?.data?.message || error.message;
+          toast.error('Silme işlemi başarısız: ' + errorMsg);
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   return (
-    <>
-      {/* Fixed Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-indigo-500 shadow-2xl z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Sol: Seçim Bilgisi */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">✅</span>
-                <span className="text-lg font-semibold text-gray-800">
-                  {selectedCount} dosya seçildi
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={onClearSelection}
-                className="text-sm text-gray-600 hover:text-red-600 transition underline"
-                disabled={loading}
-              >
-                ✕ Seçimi Kaldır
-              </button>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-indigo-500 shadow-2xl z-50">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Sol: Seçim Bilgisi */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">✅</span>
+              <span className="text-lg font-semibold text-gray-800">
+                {selectedCount} dosya seçildi
+              </span>
             </div>
 
-            {/* Sağ: Aksiyonlar */}
-            <div className="flex items-center gap-3">
-              {/* Toplu İndirme */}
-              <button
-                type="button"
-                onClick={handleDownloadZip}
-                disabled={loading}
-                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <span className="animate-spin">⏳</span>
-                    <span>Hazırlanıyor...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>📦</span>
-                    <span>Seçilenleri İndir (ZIP)</span>
-                  </>
-                )}
-              </button>
+            <button
+              type="button"
+              onClick={onClearSelection}
+              className="text-sm text-gray-600 hover:text-red-600 transition underline"
+              disabled={loading}
+            >
+              ✕ Seçimi Kaldır
+            </button>
+          </div>
 
-              {/* Toplu Silme */}
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={loading}
-                className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>🗑️</span>
-                <span>Seçilenleri Sil</span>
-              </button>
-            </div>
+          {/* Sağ: Aksiyonlar */}
+          <div className="flex items-center gap-3">
+            {/* Toplu İndirme */}
+            <button
+              type="button"
+              onClick={handleDownloadZip}
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  <span>Hazırlanıyor...</span>
+                </>
+              ) : (
+                <>
+                  <span>📦</span>
+                  <span>Seçilenleri İndir (ZIP)</span>
+                </>
+              )}
+            </button>
+
+            {/* Toplu Silme */}
+            <button
+              type="button"
+              onClick={handleDeleteSelected}
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>🗑️</span>
+              <span>Seçilenleri Sil</span>
+            </button>
           </div>
         </div>
       </div>
-
-      {/* Silme Onay Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-            <div className="text-center">
-              <span className="text-6xl">⚠️</span>
-              <h3 className="text-xl font-bold text-gray-800 mt-4">
-                Emin misiniz?
-              </h3>
-              <p className="text-gray-600 mt-2">
-                <strong>{selectedCount} dosyayı</strong> kalıcı olarak silmek üzeresiniz.
-                Bu işlem geri alınamaz!
-              </p>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={loading}
-                className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition disabled:opacity-50"
-              >
-                İptal
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteSelected}
-                disabled={loading}
-                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition disabled:opacity-50"
-              >
-                {loading ? 'Siliniyor...' : 'Evet, Sil'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

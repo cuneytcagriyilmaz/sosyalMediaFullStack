@@ -46,7 +46,7 @@ export default function MediaControls({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Dosya ara..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
             <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
           </div>
@@ -55,7 +55,7 @@ export default function MediaControls({
           <select
             value={sortBy}
             onChange={(e) => onSortChange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500"
           >
             <option value="name-asc">İsim (A-Z)</option>
             <option value="name-desc">İsim (Z-A)</option>

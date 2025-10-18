@@ -1,5 +1,7 @@
 // modules/customer-service/components/CustomerMedia/components/MediaModal.jsx
 import { useState, useEffect } from 'react';
+import { useToast } from '../../../../../shared/context/ToastContext';
+import { useModal } from '../../../../../shared/context/ModalContext';
 
 const formatFileSize = (bytes) => {
   if (bytes < 1024) return bytes + ' B';
@@ -16,8 +18,8 @@ export default function MediaModal({
   onDelete 
 }) {
   const [zoom, setZoom] = useState(1);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { confirm } = useModal();
 
   // Klavye kontrolleri
   useEffect(() => {
@@ -41,26 +43,31 @@ export default function MediaModal({
 
   const copyUrl = () => {
     navigator.clipboard.writeText(file.fullUrl);
-    alert('✅ URL kopyalandı!');
+    toast.success('URL kopyalandı!');
   };
 
   const handleDownload = () => {
     window.open(file.fullUrl, '_blank');
+    toast.info('Dosya indiriliyor...');
   };
 
   const handleDelete = async () => {
-    setLoading(true);
-    try {
-      await onDelete(file.id, file.originalFileName);
-      alert('✅ Dosya silindi!');
-      setShowDeleteConfirm(false);
-      onClose();
-    } catch (error) {
-      console.error('Silme hatası:', error);
-      alert('❌ Dosya silinemedi.');
-    } finally {
-      setLoading(false);
-    }
+    await confirm({
+      title: 'Dosyayı Sil',
+      message: `"${file.originalFileName}" dosyasını kalıcı olarak silmek istediğinizden emin misiniz?`,
+      confirmText: 'Evet, Sil',
+      cancelText: 'İptal',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await onDelete(file.id, file.originalFileName);
+          // onDelete içinde zaten toast gösteriliyor (useCustomerMedia hook'unda)
+          onClose();
+        } catch (error) {
+          // Hata yönetimi hook'ta yapılıyor
+        }
+      }
+    });
   };
 
   const zoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
@@ -93,13 +100,17 @@ export default function MediaModal({
         {/* Ana İçerik */}
         <div className="flex-1 flex items-center justify-center relative overflow-hidden">
           {/* Önceki */}
-          <button
-            onClick={() => onNavigate('prev')}
-            className="absolute left-4 z-10 p-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full transition text-3xl"
-            title="Önceki (←)"
-          >
-            ◄
-          </button>
+          {totalFiles > 1 && (
+            <button
+              onClick={() => onNavigate('prev')}
+              className="absolute left-4 z-10 p-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full transition shadow-2xl flex items-center justify-center w-14 h-14 group"
+              title="Önceki (←)"
+            >
+              <svg className="w-7 h-7 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
 
           {/* Preview */}
           <div className="max-w-5xl max-h-full p-8 flex items-center justify-center">
@@ -138,13 +149,17 @@ export default function MediaModal({
           </div>
 
           {/* Sonraki */}
-          <button
-            onClick={() => onNavigate('next')}
-            className="absolute right-4 z-10 p-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full transition text-3xl"
-            title="Sonraki (→)"
-          >
-            ►
-          </button>
+          {totalFiles > 1 && (
+            <button
+              onClick={() => onNavigate('next')}
+              className="absolute right-4 z-10 p-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full transition shadow-2xl flex items-center justify-center w-14 h-14 group"
+              title="Sonraki (→)"
+            >
+              <svg className="w-7 h-7 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
 
           {/* Zoom Kontrolleri */}
           {(file.mediaType === 'PHOTO' || file.mediaType === 'LOGO') && (
@@ -201,7 +216,7 @@ export default function MediaModal({
               </button>
 
               <button
-                onClick={() => setShowDeleteConfirm(true)}
+                onClick={handleDelete}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
               >
                 <span>🗑️</span>
@@ -219,40 +234,6 @@ export default function MediaModal({
           </div>
         </div>
       </div>
-
-      {/* Silme Onay */}
-      {showDeleteConfirm && (
-        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-10">
-          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-            <div className="text-center">
-              <span className="text-6xl">⚠️</span>
-              <h3 className="text-xl font-bold text-gray-800 mt-4">
-                Bu dosyayı silmek istediğinize emin misiniz?
-              </h3>
-              <p className="text-gray-600 mt-2">
-                <strong>{file.originalFileName}</strong> kalıcı olarak silinecek.
-              </p>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={loading}
-                className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition"
-              >
-                İptal
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={loading}
-                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
-              >
-                {loading ? 'Siliniyor...' : 'Evet, Sil'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

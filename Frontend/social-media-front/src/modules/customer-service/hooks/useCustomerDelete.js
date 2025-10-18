@@ -1,5 +1,7 @@
 // modules/customer-service/hooks/useCustomerDelete.js
 import { useState, useEffect } from 'react';
+import { useToast } from '../../../shared/context/ToastContext';
+import { useModal } from '../../../shared/context/ModalContext';
 import customerService from '../services/customerService';
 
 export default function useCustomerDelete() {
@@ -8,8 +10,9 @@ export default function useCustomerDelete() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [notification, setNotification] = useState(null);
+
+  const { toast } = useToast();
+  const { confirm } = useModal();
 
   useEffect(() => {
     fetchCustomers();
@@ -30,7 +33,8 @@ export default function useCustomerDelete() {
       setCustomers(data);
       setFilteredCustomers(data);
     } catch (error) {
-      showNotification('Müşteriler yüklenemedi!', 'error');
+      console.error('Müşteriler yüklenemedi:', error);
+      toast.error('Müşteriler yüklenirken bir hata oluştu!');
     } finally {
       setLoading(false);
     }
@@ -52,40 +56,48 @@ export default function useCustomerDelete() {
     );
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = async () => {
     if (selectedIds.length === 0) {
-      showNotification('Lütfen silinecek müşteri seçin!', 'warning');
+      toast.warning('Lütfen en az bir müşteri seçin!');
       return;
     }
-    setShowModal(true);
+
+    // Modal ile onay al
+    await confirm({
+      title: 'Müşterileri Sil',
+      message: `${selectedIds.length} müşteri silinecek. Bu işlem geri alınabilir (Soft Delete). Devam etmek istiyor musunuz?`,
+      confirmText: 'Evet, Sil',
+      cancelText: 'İptal',
+      type: 'danger',
+      onConfirm: async () => {
+        await handleConfirmDelete();
+      }
+    });
   };
 
   const handleConfirmDelete = async () => {
-    setShowModal(false);
     setLoading(true);
 
     try {
+      // Tüm seçili müşterileri sil
       await Promise.all(
         selectedIds.map(id => customerService.deleteCustomer(id))
       );
 
-      showNotification(
-        `${selectedIds.length} müşteri başarıyla silindi!`,
-        'success'
-      );
+      // Başarı mesajı
+      toast.success(`${selectedIds.length} müşteri başarıyla silindi!`);
 
+      // Seçimleri temizle ve listeyi yenile
       setSelectedIds([]);
       await fetchCustomers();
+
     } catch (error) {
-      showNotification('Silme işlemi başarısız!', 'error');
+      console.error('Silme hatası:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error('Silme işlemi başarısız: ' + errorMsg);
     } finally {
       setLoading(false);
     }
-  };
-
-  const showNotification = (message, type) => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 4000);
   };
 
   return {
@@ -94,13 +106,9 @@ export default function useCustomerDelete() {
     searchTerm,
     setSearchTerm,
     loading,
-    showModal,
-    setShowModal,
-    notification,
     handleSelectAll,
     handleSelectOne,
     handleDeleteClick,
-    handleConfirmDelete,
     allSelected: selectedIds.length === filteredCustomers.length && filteredCustomers.length > 0
   };
 }

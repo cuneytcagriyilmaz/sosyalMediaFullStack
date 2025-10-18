@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../../../shared/context/ToastContext";
+
 
 export default function LoginForm() {
     const [email, setEmail] = useState("");
@@ -10,6 +12,7 @@ export default function LoginForm() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
+    const { toast } = useToast();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,12 +28,13 @@ export default function LoginForm() {
             // AuthContext'e kaydet
             login(token, userData);
 
-            console.log("Login başarılı!");
-            
-            // Ana sayfaya yönlendir
-            navigate("/anasayfa");
+            toast.success('Giriş başarılı! Yönlendiriliyorsunuz...');
+
+            setTimeout(() => {
+                navigate("/anasayfa");
+            }, 500);
         } else {
-            alert("Hatalı kullanıcı adı veya şifre!");
+            toast.error('Hatalı kullanıcı adı veya şifre!');
             setLoading(false);
         }
     };

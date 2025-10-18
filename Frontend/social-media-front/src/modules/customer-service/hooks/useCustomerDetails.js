@@ -1,4 +1,6 @@
+// modules/customer-service/hooks/useCustomerDetails.js
 import { useState, useEffect } from 'react';
+import { useToast } from '../../../shared/context/ToastContext';
 import customerService from '../services/customerService';
 
 export default function useCustomerDetails() {
@@ -7,9 +9,21 @@ export default function useCustomerDetails() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchCustomers();
   }, []);
+
+  // ✅ localStorage'dan customer ID'yi oku ve otomatik seç
+  useEffect(() => {
+    const storedCustomerId = localStorage.getItem('selectedCustomerId');
+    if (storedCustomerId && customers.length > 0) {
+      handleSelectCustomer(storedCustomerId);
+      // Kullanıldıktan sonra temizle
+      localStorage.removeItem('selectedCustomerId');
+    }
+  }, [customers]);
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -19,6 +33,7 @@ export default function useCustomerDetails() {
     } catch (err) {
       console.error("Müşteriler yüklenemedi:", err);
       setError("Müşteriler yüklenemedi");
+      toast.error("Müşteriler yüklenemedi!");
     } finally {
       setLoading(false);
     }
@@ -37,6 +52,7 @@ export default function useCustomerDetails() {
     } catch (err) {
       console.error("Müşteri detayı yüklenemedi:", err);
       setError("Müşteri detayı yüklenemedi");
+      toast.error("Müşteri detayı yüklenemedi!");
     } finally {
       setLoading(false);
     }

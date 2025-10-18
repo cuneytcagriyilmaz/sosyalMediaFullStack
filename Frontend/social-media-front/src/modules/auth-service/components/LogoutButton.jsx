@@ -1,17 +1,30 @@
-// src/modules/auth-service/components/LogoutButton.jsx
-
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../../../shared/context/ToastContext';
+import { useModal } from '../../../shared/context/ModalContext';
+ 
 
 export default function LogoutButton() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { toast } = useToast();
+  const { confirm } = useModal();
 
-  const handleLogout = () => {
-    if (window.confirm('Çıkış yapmak istediğinize emin misiniz?')) {
-      logout();
-      navigate('/login');
-    }
+  const handleLogout = async () => {
+    await confirm({
+      title: 'Çıkış Yap',
+      message: 'Çıkış yapmak istediğinize emin misiniz?',
+      confirmText: 'Evet, Çıkış Yap',
+      cancelText: 'İptal',
+      type: 'warning',
+      onConfirm: async () => {
+        logout();
+        toast.success('Başarıyla çıkış yapıldı!');
+        setTimeout(() => {
+          navigate('/login');
+        }, 500);
+      }
+    });
   };
 
   return (

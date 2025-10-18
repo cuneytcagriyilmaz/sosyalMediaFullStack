@@ -1,5 +1,6 @@
 // modules/customer-service/hooks/useCustomerUpdate.js
 import { useState, useEffect } from "react";
+import { useToast } from "../../../shared/context/ToastContext";
 import customerService from "../services/customerService";
 
 export default function useCustomerUpdate() {
@@ -24,6 +25,8 @@ export default function useCustomerUpdate() {
   const [documentFiles, setDocumentFiles] = useState([]);
   const [uploadingMedia, setUploadingMedia] = useState(false);
 
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchCustomers();
   }, []);
@@ -35,6 +38,7 @@ export default function useCustomerUpdate() {
     } catch (err) {
       console.error("Müşteriler yüklenemedi:", err);
       setError("Müşteriler yüklenemedi");
+      toast.error("Müşteriler yüklenemedi!");
     }
   };
 
@@ -54,6 +58,7 @@ export default function useCustomerUpdate() {
     } catch (err) {
       console.error("Müşteri detayı yüklenemedi:", err);
       setError("Müşteri detayı yüklenemedi");
+      toast.error("Müşteri detayı yüklenemedi!");
     } finally {
       setLoading(false);
     }
@@ -105,11 +110,12 @@ export default function useCustomerUpdate() {
       };
 
       await customerService.updateBasicInfo(selectedCustomerId, data);
-      alert("✅ Temel bilgiler başarıyla güncellendi!");
+      toast.success("Temel bilgiler başarıyla güncellendi!");
       await handleSelectCustomer(selectedCustomerId);
     } catch (err) {
       console.error("Güncelleme hatası:", err);
-      alert("❌ Hata: " + (err.response?.data?.message || err.message));
+      const errorMsg = err.response?.data?.message || err.message;
+      toast.error("Hata: " + errorMsg);
     } finally {
       setLoadingBasicInfo(false);
     }
@@ -119,16 +125,16 @@ export default function useCustomerUpdate() {
     setLoadingContacts(true);
     try {
       await customerService.updateContacts(selectedCustomerId, formData.contacts);
-      alert("✅ İletişim kişileri başarıyla güncellendi!");
+      toast.success("İletişim kişileri başarıyla güncellendi!");
       await handleSelectCustomer(selectedCustomerId);
     } catch (err) {
       console.error("Güncelleme hatası:", err);
       const errorMsg = err.response?.data?.message || err.message;
       
       if (errorMsg.includes("Duplicate")) {
-        alert("❌ Hata: Aynı email veya telefon numarası birden fazla kişide kullanılamaz!\n\n" + errorMsg);
+        toast.error("Aynı email veya telefon numarası birden fazla kişide kullanılamaz!");
       } else {
-        alert("❌ Hata: " + errorMsg);
+        toast.error("Hata: " + errorMsg);
       }
     } finally {
       setLoadingContacts(false);
@@ -139,11 +145,12 @@ export default function useCustomerUpdate() {
     setLoadingSocialMedia(true);
     try {
       await customerService.updateSocialMedia(selectedCustomerId, formData.socialMedia);
-      alert("✅ Sosyal medya bilgileri başarıyla güncellendi!");
+      toast.success("Sosyal medya bilgileri başarıyla güncellendi!");
       await handleSelectCustomer(selectedCustomerId);
     } catch (err) {
       console.error("Güncelleme hatası:", err);
-      alert("❌ Hata: " + (err.response?.data?.message || err.message));
+      const errorMsg = err.response?.data?.message || err.message;
+      toast.error("Hata: " + errorMsg);
     } finally {
       setLoadingSocialMedia(false);
     }
@@ -153,11 +160,12 @@ export default function useCustomerUpdate() {
     setLoadingTargetAudience(true);
     try {
       await customerService.updateTargetAudience(selectedCustomerId, formData.targetAudience);
-      alert("✅ Hedef kitle bilgileri başarıyla güncellendi!");
+      toast.success("Hedef kitle bilgileri başarıyla güncellendi!");
       await handleSelectCustomer(selectedCustomerId);
     } catch (err) {
       console.error("Güncelleme hatası:", err);
-      alert("❌ Hata: " + (err.response?.data?.message || err.message));
+      const errorMsg = err.response?.data?.message || err.message;
+      toast.error("Hata: " + errorMsg);
     } finally {
       setLoadingTargetAudience(false);
     }
@@ -167,11 +175,12 @@ export default function useCustomerUpdate() {
     setLoadingSeo(true);
     try {
       await customerService.updateSeo(selectedCustomerId, formData.seo);
-      alert("✅ SEO bilgileri başarıyla güncellendi!");
+      toast.success("SEO bilgileri başarıyla güncellendi!");
       await handleSelectCustomer(selectedCustomerId);
     } catch (err) {
       console.error("Güncelleme hatası:", err);
-      alert("❌ Hata: " + (err.response?.data?.message || err.message));
+      const errorMsg = err.response?.data?.message || err.message;
+      toast.error("Hata: " + errorMsg);
     } finally {
       setLoadingSeo(false);
     }
@@ -181,11 +190,12 @@ export default function useCustomerUpdate() {
     setLoadingApiKeys(true);
     try {
       await customerService.updateApiKeys(selectedCustomerId, formData.apiKeys);
-      alert("✅ API anahtarları başarıyla güncellendi!");
+      toast.success("API anahtarları başarıyla güncellendi!");
       await handleSelectCustomer(selectedCustomerId);
     } catch (err) {
       console.error("Güncelleme hatası:", err);
-      alert("❌ Hata: " + (err.response?.data?.message || err.message));
+      const errorMsg = err.response?.data?.message || err.message;
+      toast.error("Hata: " + errorMsg);
     } finally {
       setLoadingApiKeys(false);
     }
@@ -201,28 +211,40 @@ export default function useCustomerUpdate() {
   const handleUploadNewMedia = async () => {
     if (logoFiles.length === 0 && photoFiles.length === 0 && 
         videoFiles.length === 0 && documentFiles.length === 0) {
-      alert("❌ Lütfen en az bir dosya seçin!");
+      toast.warning("Lütfen en az bir dosya seçin!");
       return;
     }
 
     setUploadingMedia(true);
 
     try {
+      const uploadPromises = [];
+
       if (logoFiles.length > 0) {
-        await customerService.uploadMultipleMedia(selectedCustomerId, logoFiles, 'LOGO');
+        uploadPromises.push(
+          customerService.uploadMultipleMedia(selectedCustomerId, logoFiles, 'LOGO')
+        );
       }
       if (photoFiles.length > 0) {
-        await customerService.uploadMultipleMedia(selectedCustomerId, photoFiles, 'PHOTO');
+        uploadPromises.push(
+          customerService.uploadMultipleMedia(selectedCustomerId, photoFiles, 'PHOTO')
+        );
       }
       if (videoFiles.length > 0) {
-        await customerService.uploadMultipleMedia(selectedCustomerId, videoFiles, 'VIDEO');
+        uploadPromises.push(
+          customerService.uploadMultipleMedia(selectedCustomerId, videoFiles, 'VIDEO')
+        );
       }
       if (documentFiles.length > 0) {
-        await customerService.uploadMultipleMedia(selectedCustomerId, documentFiles, 'DOCUMENT');
+        uploadPromises.push(
+          customerService.uploadMultipleMedia(selectedCustomerId, documentFiles, 'DOCUMENT')
+        );
       }
 
-      alert("✅ Medya dosyaları başarıyla yüklendi!");
+      await Promise.all(uploadPromises);
+      toast.success("Medya dosyaları başarıyla yüklendi!");
 
+      // Clear files
       setLogoFiles([]);
       setPhotoFiles([]);
       setVideoFiles([]);
@@ -231,7 +253,8 @@ export default function useCustomerUpdate() {
       await handleSelectCustomer(selectedCustomerId);
     } catch (error) {
       console.error("Medya yükleme hatası:", error);
-      alert("❌ Medya yüklenemedi: " + (error.response?.data?.message || error.message));
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error("Medya yüklenemedi: " + errorMsg);
     } finally {
       setUploadingMedia(false);
     }

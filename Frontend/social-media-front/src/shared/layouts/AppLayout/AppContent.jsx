@@ -67,7 +67,7 @@ export default function AppContent({ activeMenu, onNavigate }) {
           <Component onNavigate={onNavigate} />
         </section>
       ) : (
-        <Component />
+        <Component onNavigate={onNavigate} />
       )}
     </main>
   );

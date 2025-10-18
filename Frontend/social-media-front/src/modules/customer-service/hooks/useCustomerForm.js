@@ -1,6 +1,8 @@
 // modules/customer-service/hooks/useCustomerForm.js
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../shared/context/ToastContext";
 import customerService from "../services/customerService";
 import { INITIAL_FORM_DATA } from "../constants/formConstants";
 
@@ -11,6 +13,9 @@ export default function useCustomerForm() {
   const [videoFiles, setVideoFiles] = useState([]);
   const [documentFiles, setDocumentFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const addContact = () => {
     setFormData({
@@ -48,33 +53,61 @@ export default function useCustomerForm() {
     setLoading(true);
 
     try {
+      // Müşteri oluştur
       const customer = await customerService.createCustomer(formData);
       console.log("Müşteri oluşturuldu:", customer);
 
-      // Media uploads
+      // Medya yüklemeleri
+      const uploadPromises = [];
+      
       if (logoFiles.length > 0) {
-        await customerService.uploadMultipleMedia(customer.id, logoFiles, 'LOGO');
-        console.log("Logolar yüklendi");
+        uploadPromises.push(
+          customerService.uploadMultipleMedia(customer.id, logoFiles, 'LOGO')
+            .then(() => console.log("Logolar yüklendi"))
+        );
       }
       if (photoFiles.length > 0) {
-        await customerService.uploadMultipleMedia(customer.id, photoFiles, 'PHOTO');
-        console.log("Fotoğraflar yüklendi");
+        uploadPromises.push(
+          customerService.uploadMultipleMedia(customer.id, photoFiles, 'PHOTO')
+            .then(() => console.log("Fotoğraflar yüklendi"))
+        );
       }
       if (videoFiles.length > 0) {
-        await customerService.uploadMultipleMedia(customer.id, videoFiles, 'VIDEO');
-        console.log("Videolar yüklendi");
+        uploadPromises.push(
+          customerService.uploadMultipleMedia(customer.id, videoFiles, 'VIDEO')
+            .then(() => console.log("Videolar yüklendi"))
+        );
       }
       if (documentFiles.length > 0) {
-        await customerService.uploadMultipleMedia(customer.id, documentFiles, 'DOCUMENT');
-        console.log("Dökümanlar yüklendi");
+        uploadPromises.push(
+          customerService.uploadMultipleMedia(customer.id, documentFiles, 'DOCUMENT')
+            .then(() => console.log("Dökümanlar yüklendi"))
+        );
       }
 
-      alert("✅ Müşteri başarıyla eklendi!");
-      window.location.reload();
+      // Tüm medya yüklemelerini bekle
+      if (uploadPromises.length > 0) {
+        await Promise.all(uploadPromises);
+        toast.success("Müşteri ve medya dosyaları başarıyla eklendi!");
+      } else {
+        toast.success("Müşteri başarıyla eklendi!");
+      }
+
+      // Başarılı olunca listeye yönlendir
+      setTimeout(() => {
+        navigate("/musteriler"); // veya "/anasayfa" nereye gitmek istiyorsan
+      }, 1000);
 
     } catch (error) {
       console.error("Hata:", error);
-      alert("❌ Hata: " + (error.response?.data?.message || error.message));
+      
+      // Hata mesajını oku
+      const errorMessage = error.response?.data?.message 
+        || error.message 
+        || "Müşteri eklenirken bir hata oluştu!";
+      
+      toast.error(errorMessage);
+      
     } finally {
       setLoading(false);
     }
@@ -99,4 +132,3 @@ export default function useCustomerForm() {
     handleSubmit
   };
 }
-

@@ -1,7 +1,7 @@
 //src/modules/customer-service/components/CustomerDelete/CustomerDeletePage.jsx
 import { Trash2, Search } from 'lucide-react';
 import useCustomerDelete from '../../hooks/useCustomerDelete';
-import { CustomerCard, DeleteModal, Notification } from './components';
+import { CustomerCard } from './components';
 
 export default function CustomerDeletePage() {
   const {
@@ -10,20 +10,14 @@ export default function CustomerDeletePage() {
     searchTerm,
     setSearchTerm,
     loading,
-    showModal,
-    setShowModal,
-    notification,
     handleSelectAll,
     handleSelectOne,
     handleDeleteClick,
-    handleConfirmDelete,
     allSelected
   } = useCustomerDelete();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
-      <Notification notification={notification} />
-
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
@@ -124,25 +118,7 @@ export default function CustomerDeletePage() {
         )}
       </div>
 
-      {/* Delete Modal */}
-      <DeleteModal
-        show={showModal}
-        count={selectedIds.length}
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setShowModal(false)}
-      />
-
       <style>{`
-        @keyframes slide-in {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes scale-in {
-          from { transform: scale(0.9); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-        .animate-slide-in { animation: slide-in 0.3s ease-out; }
-        .animate-scale-in { animation: scale-in 0.2s ease-out; }
         .line-clamp-1 {
           overflow: hidden;
           display: -webkit-box;

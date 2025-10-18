@@ -111,6 +111,19 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
                 ${customerMenuOpen ? 'mt-1 max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}
               `}
             >
+              {/* ✅ YENİ - Müşteri Listesi */}
+              <button
+                onClick={() => onMenuChange("musteriListesi")}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
+                  activeMenu === "musteriListesi" 
+                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
+                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                }`}
+              >
+                <span className="text-base mr-2">📋</span>
+                <span>Müşteri Listesi</span>
+              </button>
+
               <button
                 onClick={() => onMenuChange("musteriGoruntule")}
                 className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
@@ -119,8 +132,8 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
                     : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
                 }`}
               >
-                <span className="text-base mr-2">📋</span>
-                <span>Müşteriler</span>
+                <span className="text-base mr-2">👁️</span>
+                <span>Müşteri Detayları</span>
               </button>
 
               <button
@@ -157,6 +170,19 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
               >
                 <span className="text-base mr-2">🗑️</span>
                 <span>Müşteri Sil</span>
+              </button>
+
+              {/* Medya Yönetimi */}
+              <button
+                onClick={() => onMenuChange("medyaYonetimi")}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
+                  activeMenu === "medyaYonetimi" 
+                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
+                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                }`}
+              >
+                <span className="text-base mr-2">🖼️</span>
+                <span>Medya Yönetimi</span>
               </button>
 
               <button

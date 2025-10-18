@@ -8,11 +8,16 @@ import CustomerDeletePage from '../modules/customer-service/components/CustomerD
 import RecycleBinPage from '../modules/customer-service/components/RecycleBin';
 import CustomerDetailsPage from '../modules/customer-service/components/CustomerDetails';
 import CustomerMediaPage from '../modules/customer-service/components/CustomerMedia';
+import CustomerListPage from '../modules/customer-service/components/CustomerList/CustomerListPage'; // ✅ YENİ
 import HomePage from '../shared/components/HomePage';
 
 export const customerRoutes = {
   anasayfa: {
     component: HomePage
+  },
+  // ✅ YENİ - Müşteri Listesi (musteriListesi olarak eklendi)
+  musteriListesi: {
+    component: CustomerListPage
   },
   musteriGoruntule: {
     component: CustomerDetailsPage,

@@ -1,23 +1,31 @@
 //src/modules/customer-service/components/CustomerDetails/components/CustomerHeader.jsx
-export default function CustomerHeader({ customer }) {
-  const getStatusColor = (status) => {
-    const colors = {
-      'ACTIVE': 'bg-green-100 text-green-800',
-      'PASSIVE': 'bg-yellow-100 text-yellow-800',
-      'CANCELLED': 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
 
+import { StatusBadge } from "../../../../../shared/components/StatusBadge";
+
+ 
+export default function CustomerHeader({ customer }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-      <div className="flex justify-between items-start">
-        <h3 className="text-2xl font-bold text-indigo-700">
-          {customer.companyName}
-        </h3>
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(customer.status)}`}>
-          {customer.status}
-        </span>
+    <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-6 border border-indigo-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-indigo-600 font-bold text-xl shadow-md">
+            {customer.companyName.charAt(0).toUpperCase()}
+          </div>
+          {/* Company Name */}
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold text-white">
+              {customer.companyName}
+            </h3>
+            <p className="text-indigo-100 text-sm mt-1">
+              🏢 {customer.sector}
+            </p>
+          </div>
+        </div>
+        {/* Status Badge */}
+        <div className="bg-white/10 backdrop-blur-sm px-3 py-2 rounded-lg">
+          <StatusBadge status={customer.status} size="md" />
+        </div>
       </div>
     </div>
   );
