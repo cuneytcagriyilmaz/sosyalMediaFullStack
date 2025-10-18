@@ -1,7 +1,7 @@
 package com.sosyalmedia.customerservice.controller;
 
 import com.sosyalmedia.customerservice.config.FileUploadProperties;
-import com.sosyalmedia.customerservice.dto.ApiResponse;
+import com.sosyalmedia.customerservice.dto.response.ApiResponse;
 import com.sosyalmedia.customerservice.dto.CustomerMediaDTO;
 import com.sosyalmedia.customerservice.entity.Customer;
 import com.sosyalmedia.customerservice.entity.CustomerMedia;
@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequestMapping("/api/customers/{customerId}/media")
@@ -264,6 +266,83 @@ public class FileUploadController {
 
         } catch (IOException e) {
             throw new RuntimeException("Dosya işlenemedi: " + e.getMessage());
+        }
+    }
+
+
+
+    // ========== ÇOKLU MEDYA ZIP İNDİRME ==========
+
+    @PostMapping("/download-zip")
+    @Operation(summary = "Seçili medyaları ZIP olarak indir")
+    public ResponseEntity<Resource> downloadMediaAsZip(
+            @PathVariable Long customerId,
+            @RequestBody List<Long> mediaIds) {
+
+        log.info("Downloading ZIP for customer: {}, media count: {}", customerId, mediaIds.size());
+
+        // 1. Müşteri kontrolü
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+
+        // 2. Seçili medyaları bul
+        List<CustomerMedia> mediaList = mediaRepository.findAllById(mediaIds);
+
+        if (mediaList.isEmpty()) {
+            throw new RuntimeException("Seçili medya bulunamadı");
+        }
+
+        // 3. Geçici ZIP dosyası oluştur
+        try {
+            Path tempZip = Files.createTempFile(
+                    "customer-" + customerId + "-media-",
+                    ".zip"
+            );
+
+            // 4. ZIP'e dosyaları ekle
+            try (ZipOutputStream zipOut =
+                         new ZipOutputStream(Files.newOutputStream(tempZip))) {
+
+                for (CustomerMedia media : mediaList) {
+                    Path filePath = Paths.get(fileUploadProperties.getDirectory())
+                            .resolve(media.getFilePath());
+
+                    if (Files.exists(filePath)) {
+                        // ZIP entry oluştur (orijinal dosya adıyla)
+                        ZipEntry zipEntry =
+                                new ZipEntry(media.getOriginalFileName());
+                        zipOut.putNextEntry(zipEntry);
+
+                        // Dosyayı ZIP'e kopyala
+                        Files.copy(filePath, zipOut);
+                        zipOut.closeEntry();
+
+                        log.debug("Added to ZIP: {}", media.getOriginalFileName());
+                    } else {
+                        log.warn("File not found: {}", filePath);
+                    }
+                }
+            }
+
+            // 5. ZIP'i Resource olarak döndür
+            Resource resource = new UrlResource(tempZip.toUri());
+
+            String zipFileName = customer.getCompanyName()
+                    .replaceAll("[^a-zA-Z0-9]", "-")
+                    .toLowerCase() + "-medya.zip";
+
+            log.info("ZIP created successfully: {} ({} files)",
+                    zipFileName, mediaList.size());
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + zipFileName + "\"")
+                    .body(resource);
+
+        } catch (IOException e) {
+            log.error("ZIP creation failed: {}", e.getMessage());
+            throw new RuntimeException("ZIP oluşturulamadı: " + e.getMessage());
         }
     }
 }

@@ -2,7 +2,7 @@ package com.sosyalmedia.customerservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sosyalmedia.customerservice.dto.CustomerContactDTO;
-import com.sosyalmedia.customerservice.dto.CustomerRequest;
+import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
 import com.sosyalmedia.customerservice.entity.Customer;
 import com.sosyalmedia.customerservice.repository.CustomerRepository;
 import org.junit.jupiter.api.AfterEach;

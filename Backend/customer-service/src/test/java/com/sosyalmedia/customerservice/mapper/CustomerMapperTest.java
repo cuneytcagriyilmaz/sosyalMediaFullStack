@@ -1,8 +1,8 @@
 package com.sosyalmedia.customerservice.mapper;
 
 import com.sosyalmedia.customerservice.dto.CustomerContactDTO;
-import com.sosyalmedia.customerservice.dto.CustomerRequest;
-import com.sosyalmedia.customerservice.dto.CustomerResponse;
+import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
+import com.sosyalmedia.customerservice.dto.response.CustomerResponse;
 import com.sosyalmedia.customerservice.entity.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -2,6 +2,10 @@ package com.sosyalmedia.customerservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sosyalmedia.customerservice.dto.*;
+import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
+import com.sosyalmedia.customerservice.dto.request.CustomerUpdateRequest;
+import com.sosyalmedia.customerservice.dto.response.CustomerListResponse;
+import com.sosyalmedia.customerservice.dto.response.CustomerResponse;
 import com.sosyalmedia.customerservice.entity.Customer;
 import com.sosyalmedia.customerservice.service.CustomerService;
 import org.junit.jupiter.api.Test;

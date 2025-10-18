@@ -1,6 +1,10 @@
 package com.sosyalmedia.customerservice.service.impl;
 
 import com.sosyalmedia.customerservice.dto.*;
+import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
+import com.sosyalmedia.customerservice.dto.request.CustomerUpdateRequest;
+import com.sosyalmedia.customerservice.dto.response.CustomerListResponse;
+import com.sosyalmedia.customerservice.dto.response.CustomerResponse;
 import com.sosyalmedia.customerservice.entity.*;
 import com.sosyalmedia.customerservice.exception.CustomerAlreadyExistsException;
 import com.sosyalmedia.customerservice.exception.CustomerNotFoundException;
@@ -86,6 +90,166 @@ public class CustomerServiceImpl implements CustomerService {
         return customerRepository.findByStatus(status).stream()
                 .map(customerMapper::toListResponse)
                 .collect(Collectors.toList());
+    }
+
+    // Dosyanın sonuna ekle (getAllDeletedCustomers metodundan sonra)
+
+    // ========== FULL UPDATE METHODS (PUT) ==========
+
+    @Override
+    @Transactional
+    public CustomerResponse updateCustomer(Long id, CustomerUpdateRequest request) {
+        log.info("Full update customer ID: {}", id);
+        log.info("Request contacts count: {}", request.getContacts() != null ? request.getContacts().size() : 0);
+
+        Customer customer = customerRepository.findByIdWithAllRelations(id)
+                .orElseThrow(() -> new CustomerNotFoundException(id));
+
+        log.info("Existing contacts count: {}", customer.getContacts().size());
+
+        applyFullUpdate(customer, request);
+        Customer savedCustomer = customerRepository.save(customer);
+
+        log.info("Updated contacts count: {}", savedCustomer.getContacts().size());
+        log.info("Customer fully updated: {}", id);
+
+        return customerMapper.toResponse(savedCustomer);
+    }
+
+    @Override
+    @Transactional
+    public CustomerResponse updateCustomerByCompanyName(String companyName, CustomerUpdateRequest request) {
+        log.info("Full update customer by company name: {}", companyName);
+
+        Customer customer = customerRepository.findByCompanyNameWithAllRelations(companyName)
+                .orElseThrow(() -> new CustomerNotFoundException("companyName", companyName));
+
+        applyFullUpdate(customer, request);
+        Customer savedCustomer = customerRepository.save(customer);
+
+        log.info("Customer fully updated: {}", companyName);
+        return customerMapper.toResponse(savedCustomer);
+    }
+
+    /**
+     * Tam güncelleme - Tüm nested object'leri REPLACE eder
+     */
+    private void applyFullUpdate(Customer customer, CustomerUpdateRequest request) {
+        // Basic fields - null kontrolü YOK (zorunlu alanlar)
+        customer.setCompanyName(request.getCompanyName());
+        customer.setSector(request.getSector());
+        customer.setAddress(request.getAddress());
+        customer.setMembershipPackage(request.getMembershipPackage());
+        customer.setStatus(request.getStatus());
+
+        // ✅ CONTACTS - TAMAMEN REPLACE
+        if (request.getContacts() != null) {
+            replaceContacts(customer, request.getContacts());
+        }
+
+        // ✅ TARGET AUDIENCE - TAMAMEN REPLACE
+        if (request.getTargetAudience() != null) {
+            replaceTargetAudience(customer, request.getTargetAudience());
+        }
+
+        // ✅ SOCIAL MEDIA - TAMAMEN REPLACE
+        if (request.getSocialMedia() != null) {
+            replaceSocialMedia(customer, request.getSocialMedia());
+        }
+
+        // ✅ SEO - TAMAMEN REPLACE
+        if (request.getSeo() != null) {
+            replaceSeo(customer, request.getSeo());
+        }
+
+        // ✅ API KEYS - TAMAMEN REPLACE
+        if (request.getApiKeys() != null) {
+            replaceApiKeys(customer, request.getApiKeys());
+        }
+    }
+
+    // ========== REPLACE METHODS ==========
+
+    private void replaceContacts(Customer customer, List<CustomerContactDTO> contactDTOs) {
+        log.info("Replacing contacts - Old count: {}, New count: {}",
+                customer.getContacts().size(), contactDTOs.size());
+
+        // ESKİ contact'ları SİL
+        customer.getContacts().clear();
+
+        // YENİ contact'ları EKLE
+        for (int i = 0; i < contactDTOs.size(); i++) {
+            CustomerContactDTO dto = contactDTOs.get(i);
+            CustomerContact contact = CustomerContact.builder()
+                    .name(dto.getName())
+                    .surname(dto.getSurname())
+                    .email(dto.getEmail())
+                    .phone(dto.getPhone())
+                    .priority(dto.getPriority() != null ? dto.getPriority() : i + 1)
+                    .customer(customer)
+                    .build();
+            customer.getContacts().add(contact);
+        }
+
+        log.info("Contacts replaced - New count: {}", customer.getContacts().size());
+    }
+
+    private void replaceTargetAudience(Customer customer, CustomerTargetAudienceDTO dto) {
+        CustomerTargetAudience ta = customer.getTargetAudience();
+        if (ta == null) {
+            ta = CustomerTargetAudience.builder().customer(customer).build();
+            customer.setTargetAudience(ta);
+        }
+
+        // Tüm alanları SET et (null kontrolü YOK)
+        ta.setSpecialDates(dto.getSpecialDates());
+        ta.setTargetRegion(dto.getTargetRegion());
+        ta.setCustomerHashtags(dto.getCustomerHashtags());
+        ta.setPostType(dto.getPostType());
+        ta.setPostFrequency(dto.getPostFrequency());
+        ta.setPostTone(dto.getPostTone());
+        ta.setAudienceAge(dto.getAudienceAge());
+        ta.setAudienceInterests(dto.getAudienceInterests());
+    }
+
+    private void replaceSocialMedia(Customer customer, CustomerSocialMediaDTO dto) {
+        CustomerSocialMedia sm = customer.getSocialMedia();
+        if (sm == null) {
+            sm = CustomerSocialMedia.builder().customer(customer).build();
+            customer.setSocialMedia(sm);
+        }
+
+        // Tüm alanları SET et (null kontrolü YOK)
+        sm.setInstagram(dto.getInstagram());
+        sm.setFacebook(dto.getFacebook());
+        sm.setTiktok(dto.getTiktok());
+    }
+
+    private void replaceSeo(Customer customer, CustomerSeoDTO dto) {
+        CustomerSeo seo = customer.getSeo();
+        if (seo == null) {
+            seo = CustomerSeo.builder().customer(customer).build();
+            customer.setSeo(seo);
+        }
+
+        // Tüm alanları SET et (null kontrolü YOK)
+        seo.setGoogleConsoleEmail(dto.getGoogleConsoleEmail());
+        seo.setSeoTitleSuggestions(dto.getTitleSuggestions());
+        seo.setSeoContentSuggestions(dto.getContentSuggestions());
+    }
+
+    private void replaceApiKeys(Customer customer, CustomerApiKeyDTO dto) {
+        CustomerApiKey ak = customer.getApiKey();
+        if (ak == null) {
+            ak = CustomerApiKey.builder().customer(customer).build();
+            customer.setApiKey(ak);
+        }
+
+        // Tüm alanları SET et (null kontrolü YOK)
+        ak.setInstagramApiKey(dto.getInstagramApiKey());
+        ak.setFacebookApiKey(dto.getFacebookApiKey());
+        ak.setTiktokApiKey(dto.getTiktokApiKey());
+        ak.setGoogleApiKey(dto.getGoogleApiKey());
     }
 
     @Override
@@ -292,11 +456,16 @@ public class CustomerServiceImpl implements CustomerService {
     public void hardDeleteCustomer(Long id) {
         log.info("Hard deleting customer ID: {}", id);
 
-        // Önce müşteriyi bul (deleted=true olanları da dahil et)
-        Customer customer = entityManager.createQuery(
-                        "SELECT c FROM Customer c WHERE c.id = :id", Customer.class)
-                .setParameter("id", id)
-                .getSingleResult();
+        //  Native query kullanarak @SQLRestriction'ı bypass edildi cunku silinmis kaydi gormuyordu sistem
+        Customer customer;
+        try {
+            customer = (Customer) entityManager
+                    .createNativeQuery("SELECT * FROM customers WHERE id = :id", Customer.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (Exception e) {
+            throw new CustomerNotFoundException(id);
+        }
 
         // 1. Müşteri klasörünü tamamen sil
         fileStorageService.deleteCustomerFolder(customer.getCompanyName());

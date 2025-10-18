@@ -1,10 +1,10 @@
 package com.sosyalmedia.customerservice.service;
 
 
-import com.sosyalmedia.customerservice.dto.CustomerRequest;
-import com.sosyalmedia.customerservice.dto.CustomerResponse;
-import com.sosyalmedia.customerservice.dto.CustomerListResponse;
-import com.sosyalmedia.customerservice.dto.CustomerUpdateRequest;
+import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
+import com.sosyalmedia.customerservice.dto.response.CustomerResponse;
+import com.sosyalmedia.customerservice.dto.response.CustomerListResponse;
+import com.sosyalmedia.customerservice.dto.request.CustomerUpdateRequest;
 import com.sosyalmedia.customerservice.entity.Customer;
 
 import java.util.List;
@@ -24,6 +24,11 @@ public interface CustomerService {
     // UPDATE (PATCH)
     CustomerResponse patchCustomer(Long id, CustomerUpdateRequest request);
     CustomerResponse patchCustomerByCompanyName(String companyName, CustomerUpdateRequest request);
+
+    //Update (Update)
+    CustomerResponse updateCustomer(Long id, CustomerUpdateRequest request);
+    CustomerResponse updateCustomerByCompanyName(String companyName, CustomerUpdateRequest request);
+
 
     // DELETE
     void softDeleteCustomer(Long id);

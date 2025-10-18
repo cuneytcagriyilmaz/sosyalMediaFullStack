@@ -2,6 +2,9 @@ package com.sosyalmedia.customerservice.mapper;
 
 import com.sosyalmedia.customerservice.config.FileUploadProperties;
 import com.sosyalmedia.customerservice.dto.*;
+import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
+import com.sosyalmedia.customerservice.dto.response.CustomerListResponse;
+import com.sosyalmedia.customerservice.dto.response.CustomerResponse;
 import com.sosyalmedia.customerservice.entity.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -108,7 +111,8 @@ public class CustomerMapper {
                 .membershipPackage(customer.getMembershipPackage())
                 .status(customer.getStatus())
                 .createdAt(customer.getCreatedAt())
-                .updatedAt(customer.getUpdatedAt());
+                .updatedAt(customer.getUpdatedAt())
+                .deletedAt(customer.getDeletedAt());
 
         // Target Audience - Nested DTO olarak
         if (customer.getTargetAudience() != null) {

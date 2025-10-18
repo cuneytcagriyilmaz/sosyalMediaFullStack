@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
- import LoginForm from "./components/authComponents/LoginForm";
-import Dashboard from "./pages/Dashboard";
+import LoginPage from "./modules/auth-service/pages/LoginPage";
+import MainLayout from "./modules/shared/main-layout/MainLayout";
+
 
 
 function App() {
@@ -8,10 +9,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Login ekranı */}
-        <Route path="/" element={<LoginForm  />} />
+        <Route path="/" element={<LoginPage  />} />
 
         {/* Dashboard ekranı */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<MainLayout />} />
 
         {/* 404 fallback */}
         <Route

@@ -1,6 +1,9 @@
 package com.sosyalmedia.customerservice.service;
 
 import com.sosyalmedia.customerservice.dto.*;
+import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
+import com.sosyalmedia.customerservice.dto.request.CustomerUpdateRequest;
+import com.sosyalmedia.customerservice.dto.response.CustomerResponse;
 import com.sosyalmedia.customerservice.entity.*;
 import com.sosyalmedia.customerservice.exception.*;
 import com.sosyalmedia.customerservice.mapper.CustomerMapper;

@@ -1,12 +1,13 @@
 package com.sosyalmedia.customerservice.controller;
 
-import com.sosyalmedia.customerservice.dto.*;
+import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
+import com.sosyalmedia.customerservice.dto.request.CustomerUpdateRequest;
+import com.sosyalmedia.customerservice.dto.response.CustomerListResponse;
+import com.sosyalmedia.customerservice.dto.response.CustomerResponse;
 import com.sosyalmedia.customerservice.entity.Customer;
 import com.sosyalmedia.customerservice.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,12 +37,12 @@ public class CustomerController {
             @ApiResponse(responseCode = "409", description = "Müşteri zaten mevcut")
     })
     @PostMapping
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<CustomerResponse>> createCustomer(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<CustomerResponse>> createCustomer(
             @Valid @RequestBody CustomerRequest request) {
         log.info("REST: Creating customer: {}", request.getCompanyName());
         CustomerResponse response = customerService.createCustomer(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(com.sosyalmedia.customerservice.dto.ApiResponse.success("Müşteri başarıyla oluşturuldu", response));
+                .body(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri başarıyla oluşturuldu", response));
     }
 
     @Operation(summary = "Tüm müşterileri listele", description = "Sistemdeki tüm aktif müşterileri getirir")
@@ -49,9 +50,9 @@ public class CustomerController {
             @ApiResponse(responseCode = "200", description = "Başarılı")
     })
     @GetMapping
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<List<CustomerListResponse>>> getAllCustomers() {
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<List<CustomerListResponse>>> getAllCustomers() {
         log.info("REST: Getting all customers");
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success(customerService.getAllCustomers()));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success(customerService.getAllCustomers()));
     }
 
     @Operation(summary = "ID ile müşteri getir", description = "Belirtilen ID'ye sahip müşterinin tüm bilgilerini getirir")
@@ -60,46 +61,73 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Müşteri bulunamadı")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<CustomerResponse>> getCustomerById(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<CustomerResponse>> getCustomerById(
             @Parameter(description = "Müşteri ID", required = true, example = "1")
             @PathVariable Long id) {
         log.info("REST: Getting customer by ID: {}", id);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success(customerService.getCustomerById(id)));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success(customerService.getCustomerById(id)));
     }
 
     @Operation(summary = "Şirket adına göre müşteri getir")
     @GetMapping("/company/{companyName}")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<CustomerResponse>> getCustomerByCompanyName(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<CustomerResponse>> getCustomerByCompanyName(
             @Parameter(description = "Şirket adı", required = true, example = "Cafe Sunshine")
             @PathVariable String companyName) {
         log.info("REST: Getting customer by company name: {}", companyName);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success(customerService.getCustomerByCompanyName(companyName)));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success(customerService.getCustomerByCompanyName(companyName)));
     }
 
     @Operation(summary = "Sektöre göre müşteri listele")
     @GetMapping("/sector/{sector}")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<List<CustomerListResponse>>> getCustomersBySector(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<List<CustomerListResponse>>> getCustomersBySector(
             @Parameter(description = "Sektör", example = "cafe")
             @PathVariable String sector) {
         log.info("REST: Getting customers by sector: {}", sector);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success(customerService.getCustomersBySector(sector)));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success(customerService.getCustomersBySector(sector)));
     }
 
     @Operation(summary = "Statüye göre müşteri listele")
     @GetMapping("/status/{status}")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<List<CustomerListResponse>>> getCustomersByStatus(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<List<CustomerListResponse>>> getCustomersByStatus(
             @Parameter(description = "Müşteri statüsü", example = "ACTIVE")
             @PathVariable Customer.CustomerStatus status) {
         log.info("REST: Getting customers by status: {}", status);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success(customerService.getCustomersByStatus(status)));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success(customerService.getCustomersByStatus(status)));
     }
 
     @Operation(summary = "Silinmiş müşterileri listele", description = "Soft delete ile silinmiş tüm müşterileri getirir")
     @GetMapping("/deleted")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<List<CustomerResponse>>> getAllDeletedCustomers() {
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<List<CustomerResponse>>> getAllDeletedCustomers() {
         log.info("REST: Getting all deleted customers");
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success(customerService.getAllDeletedCustomers()));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success(customerService.getAllDeletedCustomers()));
     }
+
+    @Operation(summary = "Müşteri güncelle (PUT)", description = "Tüm bilgileri günceller - Contacts listesini tamamen değiştirir")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Başarıyla güncellendi"),
+            @ApiResponse(responseCode = "404", description = "Müşteri bulunamadı")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<CustomerResponse>> updateCustomer(
+            @Parameter(description = "Müşteri ID", required = true)
+            @PathVariable Long id,
+            @RequestBody CustomerUpdateRequest request) {
+        log.info("REST: Full updating customer ID: {}", id);
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri başarıyla güncellendi",
+                customerService.updateCustomer(id, request)));
+    }
+
+    @Operation(summary = "Şirket adına göre tam güncelleme (PUT)")
+    @PutMapping("/company/{companyName}")
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<CustomerResponse>> updateCustomerByCompanyName(
+            @Parameter(description = "Şirket adı")
+            @PathVariable String companyName,
+            @RequestBody CustomerUpdateRequest request) {
+        log.info("REST: Full updating customer by company name: {}", companyName);
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri başarıyla güncellendi",
+                customerService.updateCustomerByCompanyName(companyName, request)));
+    }
+
 
     @Operation(summary = "Müşteri güncelle (PATCH)", description = "Sadece gönderilen alanları günceller")
     @ApiResponses(value = {
@@ -107,23 +135,23 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Müşteri bulunamadı")
     })
     @PatchMapping("/{id}")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<CustomerResponse>> patchCustomer(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<CustomerResponse>> patchCustomer(
             @Parameter(description = "Müşteri ID", required = true)
             @PathVariable Long id,
             @RequestBody CustomerUpdateRequest request) {
         log.info("REST: Patching customer ID: {}", id);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success("Müşteri başarıyla güncellendi",
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri başarıyla güncellendi",
                 customerService.patchCustomer(id, request)));
     }
 
     @Operation(summary = "Şirket adına göre güncelle")
     @PatchMapping("/company/{companyName}")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<CustomerResponse>> patchCustomerByCompanyName(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<CustomerResponse>> patchCustomerByCompanyName(
             @Parameter(description = "Şirket adı")
             @PathVariable String companyName,
             @RequestBody CustomerUpdateRequest request) {
         log.info("REST: Patching customer by company name: {}", companyName);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success("Müşteri başarıyla güncellendi",
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri başarıyla güncellendi",
                 customerService.patchCustomerByCompanyName(companyName, request)));
     }
 
@@ -133,22 +161,22 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Müşteri bulunamadı")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<Void>> softDeleteCustomer(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<Void>> softDeleteCustomer(
             @Parameter(description = "Müşteri ID")
             @PathVariable Long id) {
         log.info("REST: Soft deleting customer ID: {}", id);
         customerService.softDeleteCustomer(id);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success("Müşteri başarıyla silindi", null));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri başarıyla silindi", null));
     }
 
     @Operation(summary = "Şirket adına göre soft delete")
     @DeleteMapping("/company/{companyName}")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<Void>> softDeleteCustomerByCompanyName(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<Void>> softDeleteCustomerByCompanyName(
             @Parameter(description = "Şirket adı")
             @PathVariable String companyName) {
         log.info("REST: Soft deleting customer by company name: {}", companyName);
         customerService.softDeleteCustomerByCompanyName(companyName);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success("Müşteri başarıyla silindi", null));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri başarıyla silindi", null));
     }
 
     @Operation(summary = "Müşteriyi kalıcı sil (Hard Delete)", description = "Müşteri ve tüm ilişkili verileri kalıcı olarak siler")
@@ -157,21 +185,21 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Müşteri bulunamadı")
     })
     @DeleteMapping("/{id}/hard")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<Void>> hardDeleteCustomer(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<Void>> hardDeleteCustomer(
             @Parameter(description = "Müşteri ID")
             @PathVariable Long id) {
         log.info("REST: Hard deleting customer ID: {}", id);
         customerService.hardDeleteCustomer(id);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success("Müşteri kalıcı olarak silindi", null));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri kalıcı olarak silindi", null));
     }
 
     @Operation(summary = "Silinmiş müşteriyi geri yükle", description = "Soft delete ile silinmiş müşteriyi aktif hale getirir")
     @PutMapping("/{id}/restore")
-    public ResponseEntity<com.sosyalmedia.customerservice.dto.ApiResponse<Void>> restoreCustomer(
+    public ResponseEntity<com.sosyalmedia.customerservice.dto.response.ApiResponse<Void>> restoreCustomer(
             @Parameter(description = "Müşteri ID")
             @PathVariable Long id) throws Throwable {
         log.info("REST: Restoring customer ID: {}", id);
         customerService.restoreCustomer(id);
-        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.ApiResponse.success("Müşteri geri yüklendi", null));
+        return ResponseEntity.ok(com.sosyalmedia.customerservice.dto.response.ApiResponse.success("Müşteri geri yüklendi", null));
     }
 }
