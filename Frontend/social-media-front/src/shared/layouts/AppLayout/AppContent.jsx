@@ -1,7 +1,8 @@
 // src/shared/layouts/AppLayout/AppContent.jsx
 
-import { customerRoutes } from '../../../routes/customerRoutes';
+import { customerRoutes } from "../../../routes/CustomerRoutes";
 
+ 
 // Placeholder Component
 const PagePlaceholder = ({ title, icon }) => (
   <section className="bg-white shadow-lg rounded-xl overflow-hidden p-4">
@@ -33,7 +34,7 @@ const ROUTES = {
   ...otherRoutes
 };
 
-export default function AppContent({ activeMenu }) {
+export default function AppContent({ activeMenu, onNavigate }) {
   const route = ROUTES[activeMenu];
 
   if (!route) {
@@ -55,7 +56,7 @@ export default function AppContent({ activeMenu }) {
   const Component = route.component;
 
   return (
-    <main className="flex-1 p-6 bg-gray-50">
+    <main className="flex-1 p-3 sm:p-4 md:p-6 bg-gray-50 overflow-y-auto">
       {route.wrapper ? (
         <section className="bg-white shadow-lg rounded-xl overflow-hidden p-4">
           {route.wrapper.title && (
@@ -63,7 +64,7 @@ export default function AppContent({ activeMenu }) {
               {route.wrapper.title}
             </h2>
           )}
-          <Component />
+          <Component onNavigate={onNavigate} />
         </section>
       ) : (
         <Component />

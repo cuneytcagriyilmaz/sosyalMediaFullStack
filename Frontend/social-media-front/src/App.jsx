@@ -1,20 +1,34 @@
 // src/App.jsx
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "./modules/auth-service/pages/LoginPage";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+ import LoginPage from "./modules/auth-service/pages/LoginPage";
 import AppLayout from "./shared/layouts/AppLayout/AppLayout";
+import { AuthProvider } from "./modules/auth-service/context/AuthContext";
+import ProtectedRoute from "./modules/auth-service/context/ProtectedRoute";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Login ekranı */}
-        <Route path="/login" element={<LoginPage />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Ana sayfa - Login'e yönlendir */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Ana uygulama */}
-        <Route path="/*" element={<AppLayout />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Login ekranı - Public */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Uygulama içi sayfalar - Protected */}
+          <Route 
+            path="/*" 
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
