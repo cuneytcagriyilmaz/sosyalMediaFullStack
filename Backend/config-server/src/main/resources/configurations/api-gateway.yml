@@ -63,6 +63,56 @@ spring:
             - Path=/eureka/**
           metadata:
             auth-required: "false"
+        # ========== ANALYTICS SERVICE ==========
+        # Dashboard
+        - id: analytics-dashboard
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/dashboard/**
+          filters:
+            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
+
+        # Customer Analytics
+        - id: analytics-customers
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/customers/**
+          filters:
+            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
+
+        # Activities
+        - id: analytics-activities
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/activities/**
+          filters:
+            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
+
+        # Customer Notes
+        - id: analytics-notes
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/notes/**
+          filters:
+            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
+
+        # AI Content Tasks
+        - id: analytics-ai-tasks
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/ai-tasks/**
+          filters:
+            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
+
+        # Onboarding Tasks
+        - id: analytics-onboarding-tasks
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/onboarding-tasks/**
+          filters:
+            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
+
+
 
       # Default Filters
       default-filters:

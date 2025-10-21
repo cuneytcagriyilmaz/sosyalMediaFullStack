@@ -90,16 +90,34 @@ export default function Table({ customers, onNavigate }) {
                   })}
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button
-                    onClick={() => {
-                      localStorage.setItem('selectedCustomerId', customer.id);
-                      onNavigate?.('musteriGoruntule');
-                    }}
-                    className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium flex items-center gap-2 justify-center ml-auto"
-                  >
-                    <span>👁️</span>
-                    <span>Detay</span>
-                  </button>
+                  {/* ✅ YENİ - 2 Buton Yan Yana */}
+                  <div className="flex gap-2 justify-end">
+                    {/* Bilgiler Butonu */}
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('selectedCustomerId', customer.id);
+                        onNavigate?.('musteriGoruntule');
+                      }}
+                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium flex items-center gap-2"
+                      title="Müşteri Bilgileri"
+                    >
+                      <span>📋</span>
+                      <span>Bilgiler</span>
+                    </button>
+
+                    {/* ✅ YENİ - Analiz Butonu */}
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('selectedCustomerId', customer.id);
+                        onNavigate?.('musteriAnaliz');
+                      }}
+                      className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-medium flex items-center gap-2"
+                      title="Süreç Analizi"
+                    >
+                      <span>📊</span>
+                      <span>Analiz</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

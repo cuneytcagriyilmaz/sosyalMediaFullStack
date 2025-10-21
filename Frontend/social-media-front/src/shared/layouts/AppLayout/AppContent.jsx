@@ -1,8 +1,8 @@
 // src/shared/layouts/AppLayout/AppContent.jsx
 
-import { customerRoutes } from "../../../routes/CustomerRoutes";
+import { customerRoutes } from "../../../routes/customerRoutes";
+import { analyticsRoutes } from "../../../routes/analyticsRoutes"; // ✅ YENİ
 
- 
 // Placeholder Component
 const PagePlaceholder = ({ title, icon }) => (
   <section className="bg-white shadow-lg rounded-xl overflow-hidden p-4">
@@ -28,8 +28,9 @@ const otherRoutes = {
   }
 };
 
-// Tüm Route'ları birleştir
+// ✅ Tüm Route'ları birleştir
 const ROUTES = {
+  ...analyticsRoutes,  // ✅ YENİ - En başa (öncelik)
   ...customerRoutes,
   ...otherRoutes
 };

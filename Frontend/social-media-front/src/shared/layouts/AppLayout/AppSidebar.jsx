@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }) {
   const [customerMenuOpen, setCustomerMenuOpen] = useState(true);
 
-  // ESC tuşu ile kapatma
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -16,7 +15,6 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
-  // Body scroll kilitle
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -30,16 +28,14 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
 
   return (
     <>
-      {/* Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden animate-fade-in"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar */}
-      <aside 
+      <aside
         className={`
           fixed md:relative top-0 left-0 
           h-screen md:min-h-full
@@ -50,7 +46,6 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
-        {/* Mobil Kapatma Butonu */}
         <div className="md:hidden flex justify-between items-center p-4 pb-4 border-b flex-shrink-0">
           <h2 className="font-bold text-gray-800">Menü</h2>
           <button
@@ -58,38 +53,35 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
             className="p-2 hover:bg-gray-100 rounded-lg transition"
             aria-label="Menüyü Kapat"
           >
-            <svg 
-              className="w-5 h-5 text-gray-600" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="w-5 h-5 text-gray-600"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M6 18L18 6M6 6l12 12" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </button>
         </div>
 
-        {/* Menü İçeriği - Scroll + Flex */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-          {/* Anasayfa */}
+          {/* ✅ DEĞİŞTİ: Dashboard */}
           <button
-            onClick={() => onMenuChange("anasayfa")}
-            className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 ${
-              activeMenu === "anasayfa" 
-                ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                : "text-gray-800 hover:bg-indigo-50 hover:scale-[1.01]"
-            }`}
+            onClick={() => onMenuChange("dashboard")}
+            className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 ${activeMenu === "dashboard"
+              ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+              : "text-gray-800 hover:bg-indigo-50 hover:scale-[1.01]"
+              }`}
           >
-            <span className="text-lg mr-3">🏠</span> 
-            <span>Anasayfa</span>
+            <span className="text-lg mr-3">📊</span>
+            <span>Dashboard</span>
           </button>
 
-          {/* Müşteri Yönetimi Dropdown */}
           <div className="pt-2">
             <button
               onClick={() => setCustomerMenuOpen(!customerMenuOpen)}
@@ -104,21 +96,19 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
               </span>
             </button>
 
-            <div 
+            <div
               className={`
                 ml-4 border-l-2 border-indigo-100 pl-3 space-y-1
                 transition-all duration-300 ease-in-out origin-top
                 ${customerMenuOpen ? 'mt-1 max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}
               `}
             >
-              {/* ✅ YENİ - Müşteri Listesi */}
               <button
                 onClick={() => onMenuChange("musteriListesi")}
-                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
-                  activeMenu === "musteriListesi" 
-                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
-                }`}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${activeMenu === "musteriListesi"
+                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                  : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                  }`}
               >
                 <span className="text-base mr-2">📋</span>
                 <span>Müşteri Listesi</span>
@@ -126,11 +116,10 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
 
               <button
                 onClick={() => onMenuChange("musteriGoruntule")}
-                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
-                  activeMenu === "musteriGoruntule" 
-                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
-                }`}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${activeMenu === "musteriGoruntule"
+                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                  : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                  }`}
               >
                 <span className="text-base mr-2">👁️</span>
                 <span>Müşteri Detayları</span>
@@ -138,23 +127,32 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
 
               <button
                 onClick={() => onMenuChange("musteriEkle")}
-                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
-                  activeMenu === "musteriEkle" 
-                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
-                }`}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${activeMenu === "musteriEkle"
+                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                  : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                  }`}
               >
                 <span className="text-base mr-2">➕</span>
                 <span>Müşteri Ekle</span>
               </button>
 
+
+              <button
+                onClick={() => onMenuChange("musteriAnaliz")}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${activeMenu === "musteriAnaliz"
+                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                  : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                  }`}
+              >
+                <span className="text-base mr-2">📊</span>
+                <span>Müşteri Analizi</span>
+              </button>
               <button
                 onClick={() => onMenuChange("musteriGuncelle")}
-                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
-                  activeMenu === "musteriGuncelle" 
-                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
-                }`}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${activeMenu === "musteriGuncelle"
+                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                  : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                  }`}
               >
                 <span className="text-base mr-2">✏️</span>
                 <span>Müşteri Düzenle</span>
@@ -162,24 +160,21 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
 
               <button
                 onClick={() => onMenuChange("musteriSil")}
-                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
-                  activeMenu === "musteriSil" 
-                    ? "bg-red-100 text-red-700 font-medium transform scale-[1.02]" 
-                    : "text-gray-700 hover:bg-red-50 hover:scale-[1.01]"
-                }`}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${activeMenu === "musteriSil"
+                  ? "bg-red-100 text-red-700 font-medium transform scale-[1.02]"
+                  : "text-gray-700 hover:bg-red-50 hover:scale-[1.01]"
+                  }`}
               >
                 <span className="text-base mr-2">🗑️</span>
                 <span>Müşteri Sil</span>
               </button>
 
-              {/* Medya Yönetimi */}
               <button
                 onClick={() => onMenuChange("medyaYonetimi")}
-                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
-                  activeMenu === "medyaYonetimi" 
-                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
-                }`}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${activeMenu === "medyaYonetimi"
+                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                  : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                  }`}
               >
                 <span className="text-base mr-2">🖼️</span>
                 <span>Medya Yönetimi</span>
@@ -187,11 +182,10 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
 
               <button
                 onClick={() => onMenuChange("silinimisMusteriler")}
-                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
-                  activeMenu === "silinimisMusteriler" 
-                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
-                }`}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${activeMenu === "silinimisMusteriler"
+                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                  : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                  }`}
               >
                 <span className="text-base mr-2">♻️</span>
                 <span>Geri Dönüşüm Kutusu</span>
@@ -199,7 +193,6 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
             </div>
           </div>
 
-          {/* İçerik Yönetimi */}
           <div className="pt-4 border-t border-gray-200">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
               İçerik Yönetimi
@@ -207,11 +200,10 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
 
             <button
               onClick={() => onMenuChange("post")}
-              className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 ${
-                activeMenu === "post" 
-                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                  : "text-gray-800 hover:bg-indigo-50 hover:scale-[1.01]"
-              }`}
+              className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 ${activeMenu === "post"
+                ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                : "text-gray-800 hover:bg-indigo-50 hover:scale-[1.01]"
+                }`}
             >
               <span className="text-lg mr-3">📝</span>
               <span>Postlar</span>
@@ -219,26 +211,23 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
 
             <button
               onClick={() => onMenuChange("takvim")}
-              className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 ${
-                activeMenu === "takvim" 
-                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                  : "text-gray-800 hover:bg-indigo-50 hover:scale-[1.01]"
-              }`}
+              className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 ${activeMenu === "takvim"
+                ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                : "text-gray-800 hover:bg-indigo-50 hover:scale-[1.01]"
+                }`}
             >
               <span className="text-lg mr-3">📅</span>
               <span>Takvim</span>
             </button>
           </div>
 
-          {/* Ayarlar */}
           <div className="pt-4 border-t border-gray-200">
             <button
               onClick={() => onMenuChange("ayarlar")}
-              className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 ${
-                activeMenu === "ayarlar" 
-                  ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]" 
-                  : "text-gray-800 hover:bg-indigo-50 hover:scale-[1.01]"
-              }`}
+              className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 ${activeMenu === "ayarlar"
+                ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                : "text-gray-800 hover:bg-indigo-50 hover:scale-[1.01]"
+                }`}
             >
               <span className="text-lg mr-3">⚙️</span>
               <span>Ayarlar</span>
@@ -246,7 +235,6 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
           </div>
         </nav>
 
-        {/* Alt Boşluk (Sidebar tam ekran kaplasın) */}
         <div className="flex-shrink-0 h-4 bg-white"></div>
       </aside>
     </>
