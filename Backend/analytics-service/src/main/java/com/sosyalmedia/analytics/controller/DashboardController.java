@@ -5,7 +5,7 @@ package com.sosyalmedia.analytics.controller;
 import com.sosyalmedia.analytics.dto.ActivityLogDTO;
 import com.sosyalmedia.analytics.dto.DashboardStatsDTO;
 import com.sosyalmedia.analytics.dto.PlatformStatsDTO;
-import com.sosyalmedia.analytics.dto.response.ApiResponse;
+import com.sosyalmedia.analytics.dto.ApiResponse;
 import com.sosyalmedia.analytics.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/analytics/dashboard")
 @RequiredArgsConstructor
 @Slf4j
- public class DashboardController {
+public class DashboardController {
 
     private final DashboardService dashboardService;
 

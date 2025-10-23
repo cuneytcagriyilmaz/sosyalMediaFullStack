@@ -1,6 +1,6 @@
 // src/main/java/com/sosyalmedia/analytics/dto/response/ApiResponse.java
 
-package com.sosyalmedia.analytics.dto.response;
+package com.sosyalmedia.analytics.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

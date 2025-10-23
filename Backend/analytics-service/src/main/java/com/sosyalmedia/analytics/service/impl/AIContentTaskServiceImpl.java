@@ -8,6 +8,7 @@ import com.sosyalmedia.analytics.exception.ResourceNotFoundException;
 import com.sosyalmedia.analytics.mapper.AIContentTaskMapper;
 import com.sosyalmedia.analytics.repository.AIContentTaskRepository;
 import com.sosyalmedia.analytics.service.AIContentTaskService;
+import com.sosyalmedia.analytics.service.CustomerValidationService; // ✅ YENİ
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,14 @@ public class AIContentTaskServiceImpl implements AIContentTaskService {
 
     private final AIContentTaskRepository taskRepository;
     private final AIContentTaskMapper taskMapper;
+    private final CustomerValidationService customerValidationService; // ✅ YENİ
 
     @Override
     public AIContentTaskDTO createTask(AIContentTaskDTO taskDTO) {
         log.info("Creating new AI Content Task for customer: {}", taskDTO.getCustomerId());
+
+        // ✅ VALIDATION: Müşteri var mı kontrol et
+        customerValidationService.validateCustomerExists(taskDTO.getCustomerId());
 
         AIContentTask task = taskMapper.toEntity(taskDTO);
         task.setCreatedAt(LocalDateTime.now());
@@ -45,6 +50,12 @@ public class AIContentTaskServiceImpl implements AIContentTaskService {
 
         AIContentTask existingTask = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("AIContentTask", "id", taskId));
+
+        // ✅ VALIDATION: Eğer customerId değişiyorsa, yeni customer'ı kontrol et
+        if (taskDTO.getCustomerId() != null &&
+                !taskDTO.getCustomerId().equals(existingTask.getCustomerId())) {
+            customerValidationService.validateCustomerExists(taskDTO.getCustomerId());
+        }
 
         // Mapper ile güncelleme
         taskMapper.updateEntityFromDTO(taskDTO, existingTask);
@@ -83,6 +94,9 @@ public class AIContentTaskServiceImpl implements AIContentTaskService {
     public List<AIContentTaskDTO> getTasksByCustomerId(Long customerId) {
         log.info("Fetching all AI Content Tasks for customer: {}", customerId);
 
+        // ✅ VALIDATION: Müşteri var mı kontrol et
+        customerValidationService.validateCustomerExists(customerId);
+
         List<AIContentTask> tasks = taskRepository.findByCustomerId(customerId);
         return taskMapper.toDTOList(tasks);
     }
@@ -99,6 +113,9 @@ public class AIContentTaskServiceImpl implements AIContentTaskService {
     @Override
     @Transactional(readOnly = true)
     public long countTasksByCustomerId(Long customerId) {
+        // ✅ VALIDATION: Müşteri var mı kontrol et
+        customerValidationService.validateCustomerExists(customerId);
+
         return taskRepository.countByCustomerId(customerId);
     }
 }

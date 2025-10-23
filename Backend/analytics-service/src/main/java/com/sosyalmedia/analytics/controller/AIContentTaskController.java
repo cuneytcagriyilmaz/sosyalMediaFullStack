@@ -3,7 +3,7 @@
 package com.sosyalmedia.analytics.controller;
 
 import com.sosyalmedia.analytics.dto.AIContentTaskDTO;
-import com.sosyalmedia.analytics.dto.response.ApiResponse;
+import com.sosyalmedia.analytics.dto.ApiResponse;
 import com.sosyalmedia.analytics.entity.AIContentTask;
 import com.sosyalmedia.analytics.service.AIContentTaskService;
 

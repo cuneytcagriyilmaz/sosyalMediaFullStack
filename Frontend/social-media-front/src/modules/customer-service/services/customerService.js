@@ -1,14 +1,24 @@
 // src/services/customerService.js
-import axios from './axiosConfig'; // özel axios instance
+import axios from './axiosConfig';
 
 const customerService = {
-  // Tüm müşterileri getir
+  // ✅ Tüm müşterileri getir (WRAPPER)
   getAllCustomers: async () => {
-    const response = await axios.get('/customers');
-    return response.data.data;
+    try {
+      const response = await axios.get('/customers');
+      return {
+        success: true,
+        data: response.data.data || response.data || []
+      };
+    } catch (error) {
+      console.error('❌ getAllCustomers error:', error);
+      return {
+        success: false,
+        data: [],
+        error: error.response?.data?.message || 'Müşteriler getirilemedi'
+      };
+    }
   },
-
-
 
   // ID ile müşteri getir
   getCustomerById: async (id) => {
@@ -33,7 +43,6 @@ const customerService = {
     const response = await axios.put(`/customers/${id}`, customerData);
     return response.data.data;
   },
-
 
   // Müşteri sil (soft delete)
   deleteCustomer: async (id) => {
@@ -103,14 +112,15 @@ const customerService = {
   downloadMediaAsZip: async (customerId, mediaIds) => {
     const response = await axios.post(
       `/customers/${customerId}/media/download-zip`,
-      mediaIds,  // Body'de mediaIds array'i gönderiliyor: [1, 2, 3]
+      mediaIds,
       {
-        responseType: 'blob'  // ÖNEMLİ: ZIP dosyası binary olarak gelecek
+        responseType: 'blob'
       }
     );
-    return response;  // Tüm response'u döndür (data, headers vs.)
+    return response;
   },
-  // ========== BÖLÜM BAZLI GÜNCELLEME   ==========
+
+  // ========== BÖLÜM BAZLI GÜNCELLEME ==========
 
   updateBasicInfo: async (customerId, data) => {
     const response = await axios.put(`/customers/${customerId}/update/basic-info`, data);
@@ -141,9 +151,6 @@ const customerService = {
     const response = await axios.put(`/customers/${customerId}/update/api-keys`, apiKeys);
     return response.data.data;
   }
-
-
-
 };
 
 export default customerService;

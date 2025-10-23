@@ -3,56 +3,37 @@
 import { useState } from 'react';
 import { getStatusLabel, getStatusColor, calculateProgress } from '../../data/mockHelpers';
 import TaskEditModal from './TaskEditModal';
-import AddAITaskModal from '../Modals/AddAITaskModal';
-import analyticsService from '../../services/analyticsService';
+import AddAITaskModal from '../Modals/AddAITaskModal'; // ✅ YENİ
 
-export default function AIProcessBoard({ tasks, onUpdateTask, customerId, onRefresh }) {
+export default function AIProcessBoard({ tasks, onUpdateTask, onAddTask, customerId }) { // ✅ onAddTask prop
   const [selectedTask, setSelectedTask] = useState(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // ✅ YENİ
 
-  const handleEditTask = (task, e) => {
-    e.stopPropagation(); // Kartın onClick'ini engelle
+  const handleEditTask = (task) => {
     setSelectedTask(task);
-    setIsEditModalOpen(true);
+    setIsModalOpen(true);
   };
 
-  const handleDeleteTask = async (taskId, e) => {
-    e.stopPropagation(); // Kartın onClick'ini engelle
-    
-    if (!window.confirm('Bu görevi silmek istediğinize emin misiniz?')) {
-      return;
-    }
-
-    try {
-      const result = await analyticsService.deleteAIContentTask(taskId);
-      if (result.success) {
-        onRefresh(); // Sayfayı yenile
-      }
-    } catch (error) {
-      console.error('Task silinemedi:', error);
-    }
+  const handleCloseModal = () => {
+    setSelectedTask(null);
+    setIsModalOpen(false);
   };
 
   const handleSaveTask = async (taskId, updateData) => {
     const result = await onUpdateTask(taskId, updateData);
     if (result.success) {
-      setIsEditModalOpen(false);
-      onRefresh();
+      handleCloseModal();
     }
   };
 
+  // ✅ YENİ: Task ekleme
   const handleAddTask = async (taskData) => {
-    try {
-      const result = await analyticsService.addAIContentTask(customerId, taskData);
-      if (result.success) {
-        setIsAddModalOpen(false);
-        onRefresh();
-      }
-      return result;
-    } catch (error) {
-      return { success: false, error: 'Görev eklenemedi' };
+    const result = await onAddTask(taskData);
+    if (result.success) {
+      setIsAddModalOpen(false);
     }
+    return result;
   };
 
   return (
@@ -69,13 +50,13 @@ export default function AIProcessBoard({ tasks, onUpdateTask, customerId, onRefr
                 İçerik üretim aşamalarını takip edin
               </p>
             </div>
-            {/* Ekle Butonu */}
+            {/* ✅ YENİ: Ekle Butonu */}
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-all duration-200 flex items-center gap-2 font-medium shadow-md hover:shadow-lg"
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all duration-200 flex items-center gap-2 font-medium"
             >
               <span className="text-xl">+</span>
-              Yeni Görev
+              Görev Ekle
             </button>
           </div>
         </div>
@@ -86,13 +67,7 @@ export default function AIProcessBoard({ tasks, onUpdateTask, customerId, onRefr
             <div className="text-center py-12 text-gray-500">
               <span className="text-6xl">📋</span>
               <p className="mt-4 font-medium text-gray-700">Henüz görev eklenmemiş</p>
-              <p className="text-sm text-gray-500 mt-2">Yukarıdaki "Yeni Görev" butonunu kullanarak görev ekleyin</p>
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
-              >
-                + İlk Görev Ekle
-              </button>
+              <p className="text-sm text-gray-500 mt-2">Yukarıdaki "Görev Ekle" butonunu kullanarak yeni görev oluşturun</p>
             </div>
           ) : (
             tasks.map((task) => {
@@ -103,7 +78,8 @@ export default function AIProcessBoard({ tasks, onUpdateTask, customerId, onRefr
               return (
                 <div
                   key={task.id}
-                  className="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all duration-200 group"
+                  className="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all duration-200 cursor-pointer"
+                  onClick={() => handleEditTask(task)}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
@@ -118,35 +94,9 @@ export default function AIProcessBoard({ tasks, onUpdateTask, customerId, onRefr
                         <p className="text-xs text-gray-500 mt-1">{task.notes}</p>
                       )}
                     </div>
-                    
-                    {/* Aksiyon Butonları */}
-                    <div className="flex items-center gap-2 ml-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
-                        {getStatusLabel(task.status)}
-                      </span>
-                      
-                      {/* Düzenle Butonu */}
-                      <button
-                        onClick={(e) => handleEditTask(task, e)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition opacity-0 group-hover:opacity-100"
-                        title="Düzenle"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      
-                      {/* Sil Butonu */}
-                      <button
-                        onClick={(e) => handleDeleteTask(task.id, e)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100"
-                        title="Sil"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
+                      {getStatusLabel(task.status)}
+                    </span>
                   </div>
 
                   {/* Progress Bar */}
@@ -185,16 +135,16 @@ export default function AIProcessBoard({ tasks, onUpdateTask, customerId, onRefr
       </div>
 
       {/* Edit Modal */}
-      {isEditModalOpen && selectedTask && (
+      {isModalOpen && selectedTask && (
         <TaskEditModal
           task={selectedTask}
-          onClose={() => setIsEditModalOpen(false)}
+          onClose={handleCloseModal}
           onSave={handleSaveTask}
           title="AI İçerik Görevi Düzenle"
         />
       )}
 
-      {/* Add Modal */}
+      {/* ✅ Add Modal */}
       {isAddModalOpen && (
         <AddAITaskModal
           customerId={customerId}

@@ -8,6 +8,7 @@ import com.sosyalmedia.analytics.exception.ResourceNotFoundException;
 import com.sosyalmedia.analytics.mapper.OnboardingTaskMapper;
 import com.sosyalmedia.analytics.repository.OnboardingTaskRepository;
 import com.sosyalmedia.analytics.service.OnboardingTaskService;
+import com.sosyalmedia.analytics.service.CustomerValidationService; // ✅ YENİ
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,14 @@ public class OnboardingTaskServiceImpl implements OnboardingTaskService {
 
     private final OnboardingTaskRepository taskRepository;
     private final OnboardingTaskMapper taskMapper;
+    private final CustomerValidationService customerValidationService; // ✅ YENİ
 
     @Override
     public OnboardingTaskDTO createTask(OnboardingTaskDTO taskDTO) {
         log.info("Creating new Onboarding Task for customer: {}", taskDTO.getCustomerId());
+
+        // ✅ VALIDATION: Müşteri var mı kontrol et
+        customerValidationService.validateCustomerExists(taskDTO.getCustomerId());
 
         OnboardingTask task = taskMapper.toEntity(taskDTO);
         task.setCreatedAt(LocalDateTime.now());
@@ -45,6 +50,12 @@ public class OnboardingTaskServiceImpl implements OnboardingTaskService {
 
         OnboardingTask existingTask = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("OnboardingTask", "id", taskId));
+
+        // ✅ VALIDATION: Eğer customerId değişiyorsa, yeni customer'ı kontrol et
+        if (taskDTO.getCustomerId() != null &&
+                !taskDTO.getCustomerId().equals(existingTask.getCustomerId())) {
+            customerValidationService.validateCustomerExists(taskDTO.getCustomerId());
+        }
 
         // Mapper ile güncelleme
         taskMapper.updateEntityFromDTO(taskDTO, existingTask);
@@ -83,6 +94,9 @@ public class OnboardingTaskServiceImpl implements OnboardingTaskService {
     public List<OnboardingTaskDTO> getTasksByCustomerId(Long customerId) {
         log.info("Fetching all Onboarding Tasks for customer: {}", customerId);
 
+        // ✅ VALIDATION: Müşteri var mı kontrol et
+        customerValidationService.validateCustomerExists(customerId);
+
         List<OnboardingTask> tasks = taskRepository.findByCustomerId(customerId);
         return taskMapper.toDTOList(tasks);
     }
@@ -92,6 +106,9 @@ public class OnboardingTaskServiceImpl implements OnboardingTaskService {
     public List<OnboardingTaskDTO> getTasksByCustomerIdAndPlatform(Long customerId, OnboardingTask.Platform platform) {
         log.info("Fetching Onboarding Tasks for customer: {} and platform: {}", customerId, platform);
 
+        // ✅ VALIDATION: Müşteri var mı kontrol et
+        customerValidationService.validateCustomerExists(customerId);
+
         List<OnboardingTask> tasks = taskRepository.findByCustomerIdAndPlatform(customerId, platform);
         return taskMapper.toDTOList(tasks);
     }
@@ -99,6 +116,9 @@ public class OnboardingTaskServiceImpl implements OnboardingTaskService {
     @Override
     @Transactional(readOnly = true)
     public long countCompletedTasksByCustomerId(Long customerId) {
+        // ✅ VALIDATION: Müşteri var mı kontrol et
+        customerValidationService.validateCustomerExists(customerId);
+
         return taskRepository.countByCustomerIdAndStatus(customerId, OnboardingTask.TaskStatus.COMPLETED);
     }
 }

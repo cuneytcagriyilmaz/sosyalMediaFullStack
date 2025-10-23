@@ -1,4 +1,4 @@
-// src/main/java/com/sosyalmedia/analytics/service/impl/CustomerAnalyticsServiceImpl.java
+// Backend/analytics-service/src/main/java/com/sosyalmedia/analytics/service/impl/CustomerAnalyticsServiceImpl.java
 
 package com.sosyalmedia.analytics.service.impl;
 
@@ -10,6 +10,7 @@ import com.sosyalmedia.analytics.exception.ResourceNotFoundException;
 import com.sosyalmedia.analytics.service.ActivityLogService;
 import com.sosyalmedia.analytics.service.CustomerAnalyticsService;
 import com.sosyalmedia.analytics.service.CustomerNoteService;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,22 +31,10 @@ public class CustomerAnalyticsServiceImpl implements CustomerAnalyticsService {
 
     @Override
     public CustomerDetailDTO getCustomerDetail(Long customerId) {
-        log.info("Fetching customer detail for ID: {} from customer-service", customerId);
+        log.info("📋 Fetching customer detail for ID: {} from customer-service", customerId);
 
         // ✅ Customer-service'den müşteri bilgisini çek
-        ApiResponseDTO<CustomerResponseDTO> response;
-        try {
-            response = customerServiceClient.getCustomerById(customerId);
-        } catch (Exception e) {
-            log.error("Failed to fetch customer from customer-service: {}", e.getMessage());
-            throw new ResourceNotFoundException("Customer", "id", customerId);
-        }
-
-        if (!response.isSuccess() || response.getData() == null) {
-            throw new ResourceNotFoundException("Customer", "id", customerId);
-        }
-
-        CustomerResponseDTO customer = response.getData();
+        CustomerResponseDTO customer = fetchCustomerFromService(customerId);
 
         // ✅ Social Media bağlantılarını Map'e çevir
         Map<String, Boolean> socialMediaConnected = new HashMap<>();
@@ -113,13 +102,13 @@ public class CustomerAnalyticsServiceImpl implements CustomerAnalyticsService {
                 .notes(getCustomerNotes(customerId))
                 .build();
 
-        log.info("Customer detail fetched successfully from customer-service");
+        log.info("✅ Customer detail fetched successfully from customer-service");
         return detail;
     }
 
     @Override
     public PostStatsDTO getCustomerPostStats(Long customerId) {
-        log.info("Fetching post stats for customer: {} (MOCK DATA - No post-service yet)", customerId);
+        log.info("📊 Fetching post stats for customer: {} (MOCK DATA - No post-service yet)", customerId);
 
         // ✅ POST-SERVICE YOK - Mock data dön
         Map<String, Long> byPlatform = new HashMap<>();
@@ -139,7 +128,7 @@ public class CustomerAnalyticsServiceImpl implements CustomerAnalyticsService {
 
     @Override
     public List<PostDTO> getCustomerUpcomingPosts(Long customerId, int limit) {
-        log.info("Fetching {} upcoming posts for customer: {} (MOCK DATA - No post-service yet)",
+        log.info("📅 Fetching {} upcoming posts for customer: {} (MOCK DATA - No post-service yet)",
                 limit, customerId);
 
         // ✅ POST-SERVICE YOK - Mock data dön
@@ -177,14 +166,58 @@ public class CustomerAnalyticsServiceImpl implements CustomerAnalyticsService {
 
     @Override
     public List<ActivityLogDTO> getCustomerActivities(Long customerId, int limit) {
-        log.info("Fetching {} activities for customer: {}", limit, customerId);
-        return activityLogService.getRecentActivitiesByCustomerId(customerId, limit);
+        log.info("📋 Fetching {} activities for customer: {}", limit, customerId);
+
+        // ✅ DÜZELTİLDİ: Doğru metod adı
+        return activityLogService.getCustomerActivities(customerId, limit);
     }
 
     @Override
     public List<CustomerNoteDTO> getCustomerNotes(Long customerId) {
-        log.info("Fetching notes for customer: {}", customerId);
+        log.info("📝 Fetching notes for customer: {}", customerId);
         return customerNoteService.getNotesByCustomerId(customerId);
+    }
+
+    // ========== HELPER METHODS ==========
+
+    /**
+     * Customer-Service'den müşteri detayını çek
+     * ✅ HATA YÖNETİMİ EKLENDİ
+     */
+    private CustomerResponseDTO fetchCustomerFromService(Long customerId) {
+        try {
+            log.debug("🔄 Fetching customer {} from Customer-Service...", customerId);
+
+            ApiResponseDTO<CustomerResponseDTO> response = customerServiceClient.getCustomerById(customerId);
+
+            if (!response.isSuccess() || response.getData() == null) {
+                log.warn("❌ Customer-Service returned unsuccessful response for customer: {}", customerId);
+                throw new ResourceNotFoundException("Customer", "id", customerId);
+            }
+
+            log.debug("✅ Customer {} fetched successfully: {}", customerId, response.getData().getCompanyName());
+            return response.getData();
+
+        } catch (FeignException.NotFound e) {
+            log.warn("❌ Customer not found (404): {}", customerId);
+            throw new ResourceNotFoundException("Customer", "id", customerId);
+
+        } catch (FeignException.ServiceUnavailable e) {
+            log.error("❌ Customer-Service unavailable (503) while fetching customer: {}", customerId);
+            throw new RuntimeException("Customer-Service is currently unavailable. Please try again later.");
+
+        } catch (FeignException e) {
+            log.error("❌ Feign error while fetching customer {}: {} - {}", customerId, e.status(), e.getMessage());
+            throw new ResourceNotFoundException("Customer", "id", customerId);
+
+        } catch (ResourceNotFoundException e) {
+            // Already a ResourceNotFoundException, just re-throw
+            throw e;
+
+        } catch (Exception e) {
+            log.error("❌ Unexpected error while fetching customer {}: {}", customerId, e.getMessage(), e);
+            throw new ResourceNotFoundException("Customer", "id", customerId);
+        }
     }
 
     private boolean isNotEmpty(String str) {

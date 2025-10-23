@@ -1,7 +1,5 @@
 server:
   port: 8080
-  # PUBLIC - Default (0.0.0.0)
-  #  address: 127.0.0.1
   address: 0.0.0.0
 
 spring:
@@ -34,10 +32,21 @@ spring:
             maxAge: 3600
         add-to-simple-url-handler-mapping: true
 
-
       # Routes
       routes:
-        # Customer Service (JWT ile korunacak)
+        # ========== ANALYTICS SERVICE (ÖNCELİKLİ!) ==========
+        # ✅ TÜM analytics route'larını TEK route'a indirgedik
+        - id: analytics-service
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/**
+          filters:
+            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
+          metadata:
+            auth-required: "false"
+          order: 1  # ✅ EN YÜKSEK ÖNCELİK
+
+        # ========== CUSTOMER SERVICE ==========
         - id: customer-service
           uri: lb://customer-service
           predicates:
@@ -45,8 +54,9 @@ spring:
           metadata:
             auth-required: "true"
             roles: "USER,ADMIN"
+          order: 2
 
-        # Discovery Server Dashboard
+        # ========== DISCOVERY SERVER ==========
         - id: discovery-server
           uri: http://localhost:8761
           predicates:
@@ -55,64 +65,15 @@ spring:
             - SetPath=/
           metadata:
             auth-required: "false"
+          order: 10
 
-        # Discovery Server Static
         - id: discovery-server-static
           uri: http://localhost:8761
           predicates:
             - Path=/eureka/**
           metadata:
             auth-required: "false"
-        # ========== ANALYTICS SERVICE ==========
-        # Dashboard
-        - id: analytics-dashboard
-          uri: lb://analytics-service
-          predicates:
-            - Path=/api/analytics/dashboard/**
-          filters:
-            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
-
-        # Customer Analytics
-        - id: analytics-customers
-          uri: lb://analytics-service
-          predicates:
-            - Path=/api/analytics/customers/**
-          filters:
-            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
-
-        # Activities
-        - id: analytics-activities
-          uri: lb://analytics-service
-          predicates:
-            - Path=/api/analytics/activities/**
-          filters:
-            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
-
-        # Customer Notes
-        - id: analytics-notes
-          uri: lb://analytics-service
-          predicates:
-            - Path=/api/analytics/notes/**
-          filters:
-            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
-
-        # AI Content Tasks
-        - id: analytics-ai-tasks
-          uri: lb://analytics-service
-          predicates:
-            - Path=/api/analytics/ai-tasks/**
-          filters:
-            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
-
-        # Onboarding Tasks
-        - id: analytics-onboarding-tasks
-          uri: lb://analytics-service
-          predicates:
-            - Path=/api/analytics/onboarding-tasks/**
-          filters:
-            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
-
-
+          order: 11
 
       # Default Filters
       default-filters:
@@ -126,12 +87,6 @@ spring:
               maxBackoff: 500ms
               factor: 2
               basedOnPreviousValue: true
-
-# JWT Config (İleride aktif edilecek)
-# jwt:
-#   secret: ${JWT_SECRET:your-super-secret-key-min-256-bits}
-#   expiration: 86400000
-#   refresh-expiration: 604800000
 
 # Eureka
 eureka:
@@ -162,8 +117,8 @@ management:
 # Logging
 logging:
   level:
-    org.springframework.cloud.gateway: INFO
-    reactor.netty.http.client: INFO
-    com.sosyalmedia.apigateway: INFO
+    org.springframework.cloud.gateway: DEBUG  # ✅ DEBUG yap
+    reactor.netty.http.client: DEBUG
+    com.sosyalmedia.apigateway: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

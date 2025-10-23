@@ -1,18 +1,19 @@
-// src/main/java/com/sosyalmedia/analytics/model/ActivityLog.java
+// Backend/analytics-service/src/main/java/com/sosyalmedia/analytics/entity/ActivityLog.java
 
 package com.sosyalmedia.analytics.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "activity_logs")
+@Table(name = "activity_log")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ActivityLog {
@@ -25,28 +26,35 @@ public class ActivityLog {
     private Long customerId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "activity_type", nullable = false, length = 50)
+    @Column(name = "activity_type", nullable = false)
     private ActivityType activityType;
 
-    @Column(nullable = false, length = 500)
+    @Column(name = "message", nullable = false, length = 500)
     private String message;
 
-    @Column(name = "icon", length = 10)
+    @Column(name = "icon")
     private String icon;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // Enum
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
     public enum ActivityType {
-        POST_SENT,
-        POST_READY,
-        AI_COMPLETED,
-        DEADLINE_APPROACHING,
-        NEW_CUSTOMER,
-        CUSTOMER_UPDATED,
-        CONTENT_APPROVED,
-        MEDIA_UPLOADED
+        POST_SENT,              // Post gönderildi
+        POST_READY,             // Post hazır
+        AI_COMPLETED,           // AI tamamlandı
+        NEW_CUSTOMER,           // Yeni müşteri
+        CUSTOMER_UPDATED,       // Müşteri güncellendi
+        CONTENT_APPROVED,       // İçerik onaylandı
+        MEDIA_UPLOADED,         // Medya yüklendi
+        DEADLINE_APPROACHING,   // Deadline yaklaşıyor
+        TASK_COMPLETED,         // Görev tamamlandı
+        ONBOARDING_COMPLETED    // Onboarding tamamlandı
     }
 }

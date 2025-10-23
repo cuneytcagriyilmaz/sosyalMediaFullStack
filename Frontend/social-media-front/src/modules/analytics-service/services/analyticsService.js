@@ -1,441 +1,406 @@
 // src/modules/analytics-service/services/analyticsService.js
 
-import {
-  mockDashboardStats,
-  mockCustomerDetails,
-  mockAIContentTasks,
-  mockOnboardingTasks
-} from '../data/mockData';
+import httpClient from './api/httpClient';
+import { API_ENDPOINTS } from './api/config';
 
-// Simüle edilmiş API gecikme süresi
-const API_DELAY = 500; // ms
+const analyticsService = {
+    // ============================================
+    // DASHBOARD SERVICE
+    // ============================================
 
-// API delay simülasyonu için helper
-const delay = (ms = API_DELAY) => new Promise(resolve => setTimeout(resolve, ms));
+    /**
+     * Dashboard istatistiklerini getir
+     */
+    getDashboardStats: async () => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.DASHBOARD_STATS);
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to fetch dashboard stats:', error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
 
-// ============================================
-// DASHBOARD SERVICE
-// ============================================
+    /**
+     * Platform istatistiklerini getir
+     */
+    getPlatformStats: async () => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.PLATFORM_STATS);
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to fetch platform stats:', error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
 
-/**
- * Dashboard istatistiklerini getir
- */
-export const getDashboardStats = async () => {
-  await delay();
-  return {
-    success: true,
-    data: mockDashboardStats
-  };
-};
+    /**
+     * Son aktiviteleri getir (Dashboard için)
+     */
+    getRecentActivities: async (limit = 10) => {
+        try {
+            const response = await httpClient.get(
+                `${API_ENDPOINTS.ACTIVITIES}?limit=${limit}`
+            );
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to fetch activities:', error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
 
-/**
- * Platform istatistiklerini getir
- */
-export const getPlatformStats = async () => {
-  await delay();
-  return {
-    success: true,
-    data: mockDashboardStats.platformStats
-  };
-};
+    // ============================================
+    // ACTIVITIES SERVICE (✅ YENİ METODLAR)
+    // ============================================
 
-/**
- * Son aktiviteleri getir
- */
-export const getRecentActivities = async (limit = 10) => {
-  await delay();
-  const activities = mockDashboardStats.recentActivities.slice(0, limit);
-  return {
-    success: true,
-    data: activities
-  };
-};
+    /**
+     * Yeni aktivite ekle
+     */
+    createActivity: async (activityData) => {
+        try {
+            const response = await httpClient.post(API_ENDPOINTS.ACTIVITIES, activityData);
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to create activity:', error);
+            return { success: false, error: error.error || 'Aktivite eklenemedi' };
+        }
+    },
 
-// ============================================
-// CUSTOMER DETAIL SERVICE
-// ============================================
+    /**
+   * Aktivite güncelle (✅ YENİ)
+   */
+    updateActivity: async (activityId, activityData) => {
+        try {
+            const response = await httpClient.put(
+                `${API_ENDPOINTS.ACTIVITIES}/${activityId}`,
+                activityData
+            );
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to update activity:', error);
+            return { success: false, error: error.error || 'Aktivite güncellenemedi' };
+        }
+    },
 
-/**
- * Müşteri detay bilgilerini getir
- */
-export const getCustomerDetail = async (customerId) => {
-  await delay();
-  
-  const customerDetail = mockCustomerDetails[customerId];
-  
-  if (!customerDetail) {
-    return {
-      success: false,
-      error: 'Müşteri bulunamadı'
-    };
-  }
-  
-  return {
-    success: true,
-    data: customerDetail
-  };
-};
+    /**
+     * Toplu aktivite ekle
+     */
+    createActivitiesBulk: async (activities) => {
+        try {
+            const response = await httpClient.post(API_ENDPOINTS.ACTIVITIES_BULK, activities);
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to create bulk activities:', error);
+            return { success: false, error: error.error || 'Aktiviteler eklenemedi' };
+        }
+    },
 
-/**
- * Müşteri post istatistiklerini getir
- */
-export const getCustomerPostStats = async (customerId) => {
-  await delay();
-  
-  const customerDetail = mockCustomerDetails[customerId];
-  
-  if (!customerDetail) {
-    return {
-      success: false,
-      error: 'Müşteri bulunamadı'
-    };
-  }
-  
-  return {
-    success: true,
-    data: customerDetail.postStats
-  };
-};
+    /**
+     * Aktiviteyi ID ile getir
+     */
+    getActivityById: async (id) => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.ACTIVITY_BY_ID(id));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch activity ${id}:`, error);
+            return { success: false, error: error.error || 'Aktivite bulunamadı' };
+        }
+    },
 
-/**
- * Müşteri yaklaşan postlarını getir
- */
-export const getCustomerUpcomingPosts = async (customerId, limit = 5) => {
-  await delay();
-  
-  const customerDetail = mockCustomerDetails[customerId];
-  
-  if (!customerDetail) {
-    return {
-      success: false,
-      error: 'Müşteri bulunamadı'
-    };
-  }
-  
-  const posts = customerDetail.upcomingPosts.slice(0, limit);
-  
-  return {
-    success: true,
-    data: posts
-  };
-};
+    /**
+     * Tipe göre aktiviteleri getir
+     */
+    getActivitiesByType: async (activityType, limit = 50) => {
+        try {
+            const response = await httpClient.get(
+                `${API_ENDPOINTS.ACTIVITIES_BY_TYPE(activityType)}?limit=${limit}`
+            );
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch activities by type ${activityType}:`, error);
+            return { success: false, error: error.error || 'Aktiviteler getirilemedi' };
+        }
+    },
 
-/**
- * Müşteri aktivitelerini getir
- */
-export const getCustomerActivities = async (customerId, limit = 10) => {
-  await delay();
-  
-  const customerDetail = mockCustomerDetails[customerId];
-  
-  if (!customerDetail) {
-    return {
-      success: false,
-      error: 'Müşteri bulunamadı'
-    };
-  }
-  
-  const activities = customerDetail.recentActivities.slice(0, limit);
-  
-  return {
-    success: true,
-    data: activities
-  };
-};
+    /**
+     * Müşteri + Tip kombinasyonu ile aktiviteleri getir
+     */
+    getCustomerActivitiesByType: async (customerId, activityType, limit = 20) => {
+        try {
+            const response = await httpClient.get(
+                `${API_ENDPOINTS.ACTIVITIES}/customer/${customerId}/type/${activityType}?limit=${limit}`
+            );
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch customer activities:`, error);
+            return { success: false, error: error.error || 'Aktiviteler getirilemedi' };
+        }
+    },
 
-/**
- * Müşteri notlarını getir
- */
-export const getCustomerNotes = async (customerId) => {
-  await delay();
-  
-  const customerDetail = mockCustomerDetails[customerId];
-  
-  if (!customerDetail) {
-    return {
-      success: false,
-      error: 'Müşteri bulunamadı'
-    };
-  }
-  
-  return {
-    success: true,
-    data: customerDetail.notes || []
-  };
-};
+    /**
+     * Tarih aralığına göre aktiviteleri getir
+     */
+    getActivitiesByDateRange: async (startDate, endDate, limit = 100) => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.ACTIVITIES_RANGE, {
+                params: { startDate, endDate, limit }
+            });
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to fetch activities by date range:', error);
+            return { success: false, error: error.error || 'Aktiviteler getirilemedi' };
+        }
+    },
 
-/**
- * Müşteri notu ekle
- */
-export const addCustomerNote = async (customerId, noteText) => {
-  await delay();
-  
-  const customerDetail = mockCustomerDetails[customerId];
-  
-  if (!customerDetail) {
-    return {
-      success: false,
-      error: 'Müşteri bulunamadı'
-    };
-  }
-  
-  const newNote = {
-    id: Date.now(),
-    text: noteText,
-    createdAt: new Date().toISOString(),
-    createdBy: 'Admin'
-  };
-  
-  customerDetail.notes.unshift(newNote);
-  
-  return {
-    success: true,
-    data: newNote
-  };
-};
+    /**
+     * Aktivite istatistikleri
+     */
+    getActivityStats: async () => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.ACTIVITIES_STATS);
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to fetch activity stats:', error);
+            return { success: false, error: error.error || 'İstatistikler getirilemedi' };
+        }
+    },
 
-// ============================================
-// AI CONTENT TASKS SERVICE
-// ============================================
+    /**
+     * Aktivite sil
+     */
+    deleteActivity: async (id) => {
+        try {
+            const response = await httpClient.delete(API_ENDPOINTS.ACTIVITY_BY_ID(id));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to delete activity ${id}:`, error);
+            return { success: false, error: error.error || 'Aktivite silinemedi' };
+        }
+    },
 
-/**
- * Müşterinin AI içerik görevlerini getir
- */
-export const getAIContentTasks = async (customerId) => {
-  await delay();
-  
-  const tasks = mockAIContentTasks[customerId];
-  
-  if (!tasks) {
-    return {
-      success: true,
-      data: []
-    };
-  }
-  
-  return {
-    success: true,
-    data: tasks
-  };
-};
+    // ============================================
+    // CUSTOMER DETAIL SERVICE
+    // ============================================
 
-/**
- * AI içerik görevi güncelle
- */
-export const updateAIContentTask = async (taskId, updateData) => {
-  await delay();
-  
-  // Tüm müşterilerdeki görevleri ara
-  for (const customerId in mockAIContentTasks) {
-    const tasks = mockAIContentTasks[customerId];
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
-    
-    if (taskIndex !== -1) {
-      // Görevi güncelle
-      mockAIContentTasks[customerId][taskIndex] = {
-        ...mockAIContentTasks[customerId][taskIndex],
-        ...updateData,
-        updatedAt: new Date().toISOString()
-      };
-      
-      return {
-        success: true,
-        data: mockAIContentTasks[customerId][taskIndex]
-      };
-    }
-  }
-  
-  return {
-    success: false,
-    error: 'Görev bulunamadı'
-  };
-};
+    /**
+     * Müşteri detay bilgilerini getir
+     */
+    getCustomerDetail: async (customerId) => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.CUSTOMER_DETAIL(customerId));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch customer ${customerId}:`, error);
+            return { success: false, error: error.error || 'Müşteri bulunamadı' };
+        }
+    },
 
-/**
- * Yeni AI içerik görevi ekle
- */
-export const addAIContentTask = async (customerId, taskData) => {
-  await delay();
-  
-  if (!mockAIContentTasks[customerId]) {
-    mockAIContentTasks[customerId] = [];
-  }
-  
-  const newTask = {
-    id: Date.now(),
-    customerId,
-    ...taskData,
-    createdAt: new Date().toISOString()
-  };
-  
-  mockAIContentTasks[customerId].push(newTask);
-  
-  return {
-    success: true,
-    data: newTask
-  };
-};
+    /**
+     * Müşteri post istatistiklerini getir
+     */
+    getCustomerPostStats: async (customerId) => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.CUSTOMER_POST_STATS(customerId));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch post stats for customer ${customerId}:`, error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
 
-/**
- * AI içerik görevini sil
- */
-export const deleteAIContentTask = async (taskId) => {
-  await delay();
-  
-  // Tüm müşterilerdeki görevleri ara
-  for (const customerId in mockAIContentTasks) {
-    const tasks = mockAIContentTasks[customerId];
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
-    
-    if (taskIndex !== -1) {
-      mockAIContentTasks[customerId].splice(taskIndex, 1);
-      
-      return {
-        success: true,
-        message: 'Görev silindi'
-      };
-    }
-  }
-  
-  return {
-    success: false,
-    error: 'Görev bulunamadı'
-  };
-};
+    /**
+     * Müşteri yaklaşan postlarını getir
+     */
+    getCustomerUpcomingPosts: async (customerId, limit = 5) => {
+        try {
+            const response = await httpClient.get(
+                `${API_ENDPOINTS.CUSTOMER_UPCOMING_POSTS(customerId)}?limit=${limit}`
+            );
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch upcoming posts for customer ${customerId}:`, error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
 
-// ============================================
-// ONBOARDING TASKS SERVICE
-// ============================================
+    /**
+     * Müşteri aktivitelerini getir
+     */
+    getCustomerActivities: async (customerId, limit = 10) => {
+        try {
+            const response = await httpClient.get(
+                `${API_ENDPOINTS.CUSTOMER_ACTIVITIES(customerId)}?limit=${limit}`
+            );
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch activities for customer ${customerId}:`, error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
 
-/**
- * Müşterinin onboarding görevlerini getir
- */
-export const getOnboardingTasks = async (customerId) => {
-  await delay();
-  
-  const tasks = mockOnboardingTasks[customerId];
-  
-  if (!tasks) {
-    return {
-      success: true,
-      data: []
-    };
-  }
-  
-  return {
-    success: true,
-    data: tasks
-  };
-};
+    /**
+     * Müşteri notlarını getir
+     */
+    getCustomerNotes: async (customerId) => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.CUSTOMER_NOTES(customerId));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch notes for customer ${customerId}:`, error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
 
-/**
- * Onboarding görevini güncelle
- */
-export const updateOnboardingTask = async (taskId, updateData) => {
-  await delay();
-  
-  // Tüm müşterilerdeki görevleri ara
-  for (const customerId in mockOnboardingTasks) {
-    const tasks = mockOnboardingTasks[customerId];
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
-    
-    if (taskIndex !== -1) {
-      // Görevi güncelle
-      mockOnboardingTasks[customerId][taskIndex] = {
-        ...mockOnboardingTasks[customerId][taskIndex],
-        ...updateData,
-        updatedAt: new Date().toISOString()
-      };
-      
-      return {
-        success: true,
-        data: mockOnboardingTasks[customerId][taskIndex]
-      };
-    }
-  }
-  
-  return {
-    success: false,
-    error: 'Görev bulunamadı'
-  };
-};
+    /**
+     * Müşteri notu ekle
+     */
+    addCustomerNote: async (customerId, noteText) => {
+        try {
+            const response = await httpClient.post(
+                API_ENDPOINTS.CUSTOMER_NOTES(customerId),
+                {
+                    text: noteText,
+                    createdBy: 'Admin'
+                }
+            );
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to add note for customer ${customerId}:`, error);
+            return { success: false, error: error.error || 'Not eklenemedi' };
+        }
+    },
 
-/**
- * Yeni onboarding görevi ekle
- */
-export const addOnboardingTask = async (customerId, taskData) => {
-  await delay();
-  
-  if (!mockOnboardingTasks[customerId]) {
-    mockOnboardingTasks[customerId] = [];
-  }
-  
-  const newTask = {
-    id: Date.now(),
-    customerId,
-    ...taskData,
-    createdAt: new Date().toISOString()
-  };
-  
-  mockOnboardingTasks[customerId].push(newTask);
-  
-  return {
-    success: true,
-    data: newTask
-  };
-};
+    // ============================================
+    // AI CONTENT TASKS SERVICE
+    // ============================================
 
-/**
- * Onboarding görevini sil
- */
-export const deleteOnboardingTask = async (taskId) => {
-  await delay();
-  
-  // Tüm müşterilerdeki görevleri ara
-  for (const customerId in mockOnboardingTasks) {
-    const tasks = mockOnboardingTasks[customerId];
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
-    
-    if (taskIndex !== -1) {
-      mockOnboardingTasks[customerId].splice(taskIndex, 1);
-      
-      return {
-        success: true,
-        message: 'Görev silindi'
-      };
-    }
-  }
-  
-  return {
-    success: false,
-    error: 'Görev bulunamadı'
-  };
+    /**
+     * Müşterinin AI içerik görevlerini getir
+     */
+    getAIContentTasks: async (customerId) => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.AI_TASKS_BY_CUSTOMER(customerId));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch AI tasks for customer ${customerId}:`, error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
+
+    /**
+     * AI içerik görevi güncelle
+     */
+    updateAIContentTask: async (taskId, updateData) => {
+        try {
+            const response = await httpClient.put(
+                API_ENDPOINTS.AI_TASK_BY_ID(taskId),
+                updateData
+            );
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to update AI task ${taskId}:`, error);
+            return { success: false, error: error.error || 'Güncelleme başarısız' };
+        }
+    },
+
+    /**
+     * Yeni AI içerik görevi ekle
+     */
+    addAIContentTask: async (customerId, taskData) => {
+        try {
+            const response = await httpClient.post(
+                API_ENDPOINTS.AI_TASKS,
+                {
+                    customerId,
+                    ...taskData
+                }
+            );
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to add AI task:', error);
+            return { success: false, error: error.error || 'Görev eklenemedi' };
+        }
+    },
+
+    /**
+     * AI içerik görevini sil
+     */
+    deleteAIContentTask: async (taskId) => {
+        try {
+            const response = await httpClient.delete(API_ENDPOINTS.AI_TASK_BY_ID(taskId));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to delete AI task ${taskId}:`, error);
+            return { success: false, error: error.error || 'Silme başarısız' };
+        }
+    },
+
+    // ============================================
+    // ONBOARDING TASKS SERVICE
+    // ============================================
+
+    /**
+     * Müşterinin onboarding görevlerini getir
+     */
+    getOnboardingTasks: async (customerId) => {
+        try {
+            const response = await httpClient.get(API_ENDPOINTS.ONBOARDING_TASKS_BY_CUSTOMER(customerId));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to fetch onboarding tasks for customer ${customerId}:`, error);
+            return { success: false, error: error.error || 'Veriler yüklenemedi' };
+        }
+    },
+
+    /**
+     * Onboarding görevini güncelle
+     */
+    updateOnboardingTask: async (taskId, updateData) => {
+        try {
+            const response = await httpClient.put(
+                API_ENDPOINTS.ONBOARDING_TASK_BY_ID(taskId),
+                updateData
+            );
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to update onboarding task ${taskId}:`, error);
+            return { success: false, error: error.error || 'Güncelleme başarısız' };
+        }
+    },
+
+    /**
+     * Yeni onboarding görevi ekle
+     */
+    addOnboardingTask: async (customerId, taskData) => {
+        try {
+            const response = await httpClient.post(
+                API_ENDPOINTS.ONBOARDING_TASKS,
+                {
+                    customerId,
+                    ...taskData
+                }
+            );
+            return response;
+        } catch (error) {
+            console.error('❌ Failed to add onboarding task:', error);
+            return { success: false, error: error.error || 'Görev eklenemedi' };
+        }
+    },
+
+    /**
+     * Onboarding görevini sil
+     */
+    deleteOnboardingTask: async (taskId) => {
+        try {
+            const response = await httpClient.delete(API_ENDPOINTS.ONBOARDING_TASK_BY_ID(taskId));
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to delete onboarding task via API:`, error);
+            return { success: false, error: error.error || 'Silme başarısız' };
+        }
+    },
 };
 
 // Default export
-export default {
-  // Dashboard
-  getDashboardStats,
-  getPlatformStats,
-  getRecentActivities,
-  
-  // Customer Detail
-  getCustomerDetail,
-  getCustomerPostStats,
-  getCustomerUpcomingPosts,
-  getCustomerActivities,
-  getCustomerNotes,
-  addCustomerNote,
-  
-  // AI Content Tasks
-  getAIContentTasks,
-  updateAIContentTask,
-  addAIContentTask,
-  deleteAIContentTask,
-  
-  // Onboarding Tasks
-  getOnboardingTasks,
-  updateOnboardingTask,
-  addOnboardingTask,
-  deleteOnboardingTask
-};
+export default analyticsService;

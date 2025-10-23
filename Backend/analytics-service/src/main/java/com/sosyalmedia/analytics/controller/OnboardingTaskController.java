@@ -3,7 +3,7 @@
 package com.sosyalmedia.analytics.controller;
 
 import com.sosyalmedia.analytics.dto.OnboardingTaskDTO;
-import com.sosyalmedia.analytics.dto.response.ApiResponse;
+import com.sosyalmedia.analytics.dto.ApiResponse;
 import com.sosyalmedia.analytics.entity.OnboardingTask;
 import com.sosyalmedia.analytics.service.OnboardingTaskService;
 

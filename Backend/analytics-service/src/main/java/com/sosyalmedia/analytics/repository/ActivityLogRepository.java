@@ -1,31 +1,58 @@
-// src/main/java/com/sosyalmedia/analytics/repository/ActivityLogRepository.java
+// Backend/analytics-service/src/main/java/com/sosyalmedia/analytics/repository/ActivityLogRepository.java
 
 package com.sosyalmedia.analytics.repository;
 
 import com.sosyalmedia.analytics.entity.ActivityLog;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
 
-    // Belirli sayıda son aktiviteyi getir (tüm müşteriler)
-    List<ActivityLog> findTop10ByOrderByCreatedAtDesc();
+    /**
+     * Müşteriye ait aktiviteleri getir (sayfalı)
+     */
+    List<ActivityLog> findByCustomerId(Long customerId, Pageable pageable);
 
-    // Customer ID'ye göre son aktiviteleri getir
-    List<ActivityLog> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+    /**
+     * Aktivite tipine göre getir (sayfalı)
+     */
+    List<ActivityLog> findByActivityType(ActivityLog.ActivityType activityType, Pageable pageable);
 
-    // Activity type'a göre filtrele
-    List<ActivityLog> findByActivityTypeOrderByCreatedAtDesc(ActivityLog.ActivityType activityType);
+    /**
+     * Müşteriye ait son 10 aktiviteyi getir
+     */
+    List<ActivityLog> findTop10ByCustomerIdOrderByCreatedAtDesc(Long customerId);
 
-    // Custom query: Son N aktiviteyi getir
-    @Query(value = "SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT ?1", nativeQuery = true)
-    List<ActivityLog> findRecentActivities(int limit);
+    /**
+     * Tarih aralığına göre aktiviteleri getir
+     */
+    @Query("SELECT a FROM ActivityLog a WHERE a.createdAt BETWEEN :startDate AND :endDate ORDER BY a.createdAt DESC")
+    List<ActivityLog> findByDateRange(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable
+    );
 
-    // Custom query: Belirli bir müşterinin son N aktivitesini getir
-    @Query(value = "SELECT * FROM activity_logs WHERE customer_id = ?1 ORDER BY created_at DESC LIMIT ?2", nativeQuery = true)
-    List<ActivityLog> findRecentActivitiesByCustomerId(Long customerId, int limit);
+    /**
+     * Müşteri ve tip kombinasyonu ile getir
+     */
+    @Query("SELECT a FROM ActivityLog a WHERE a.customerId = :customerId AND a.activityType = :activityType ORDER BY a.createdAt DESC")
+    List<ActivityLog> findByCustomerIdAndActivityType(
+            @Param("customerId") Long customerId,
+            @Param("activityType") ActivityLog.ActivityType activityType,
+            Pageable pageable
+    );
+
+    /**
+     * Aktivite sayısını tip bazında getir
+     */
+    @Query("SELECT a.activityType, COUNT(a) FROM ActivityLog a GROUP BY a.activityType")
+    List<Object[]> countByActivityType();
 }

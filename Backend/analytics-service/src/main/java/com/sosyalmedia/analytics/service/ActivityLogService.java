@@ -1,41 +1,78 @@
-// src/main/java/com/sosyalmedia/analytics/service/ActivityLogService.java
+// Backend/analytics-service/src/main/java/com/sosyalmedia/analytics/service/ActivityLogService.java
 
 package com.sosyalmedia.analytics.service;
 
 import com.sosyalmedia.analytics.dto.ActivityLogDTO;
-import com.sosyalmedia.analytics.entity.ActivityLog;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface ActivityLogService {
 
     /**
-     * Yeni aktivite logu oluştur
+     * Yeni aktivite oluştur
      */
-    ActivityLogDTO createActivityLog(ActivityLogDTO activityLogDTO);
+    ActivityLogDTO createActivity(ActivityLogDTO dto);
 
     /**
-     * Aktivite logu getir
-     */
-    ActivityLogDTO getActivityLogById(Long id);
-
-    /**
-     * Belirli sayıda son aktiviteyi getir (tüm müşteriler)
+     * Son N aktiviteyi getir
      */
     List<ActivityLogDTO> getRecentActivities(int limit);
 
     /**
-     * Belirli bir müşterinin son aktivitelerini getir
+     * Müşteriye ait aktiviteleri getir
      */
-    List<ActivityLogDTO> getRecentActivitiesByCustomerId(Long customerId, int limit);
+    List<ActivityLogDTO> getCustomerActivities(Long customerId, int limit);
 
     /**
-     * Activity type'a göre aktiviteleri getir
+     * Müşteriye ait son aktiviteleri getir (CustomerAnalyticsService için)
+     *
+     * @deprecated Use {@link #getCustomerActivities(Long, int)} instead
      */
-    List<ActivityLogDTO> getActivitiesByType(ActivityLog.ActivityType activityType);
+    @Deprecated
+    default List<ActivityLogDTO> getRecentActivitiesByCustomerId(Long customerId, int limit) {
+        return getCustomerActivities(customerId, limit);
+    }
+
+    /**
+     * Aktivite tipine göre getir
+     */
+    List<ActivityLogDTO> getActivitiesByType(String activityType, int limit);
+
+    /**
+     * Tarih aralığına göre aktiviteleri getir
+     */
+    List<ActivityLogDTO> getActivitiesByDateRange(LocalDateTime startDate, LocalDateTime endDate, int limit);
+
+    /**
+     * Müşteri ve tip kombinasyonu ile getir
+     */
+    List<ActivityLogDTO> getCustomerActivitiesByType(Long customerId, String activityType, int limit);
+
+    /**
+     * Aktivite tiplerinin sayılarını getir
+     */
+    Map<String, Long> getActivityTypeStats();
+
+    /**
+     * Aktiviteyi ID ile getir
+     */
+    ActivityLogDTO getActivityById(Long id);
+
+
+    /**
+     * Aktivite güncelle
+     */
+    ActivityLogDTO updateActivity(Long id, ActivityLogDTO activityDTO);
 
     /**
      * Aktivite sil
      */
-    void deleteActivityLog(Long id);
+    void deleteActivity(Long id);
+
+    /**
+     * Toplu aktivite kaydet
+     */
+    List<ActivityLogDTO> createActivities(List<ActivityLogDTO> activities);
 }

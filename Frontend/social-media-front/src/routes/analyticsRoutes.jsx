@@ -1,22 +1,34 @@
 // src/routes/analyticsRoutes.jsx
 
 import DashboardPage from '../modules/analytics-service/pages/DashboardPage';
-import CustomerAnalyticsPage from '../modules/analytics-service/pages/CustomerAnalyticsPage';
-
-// ✅ Dinamik Customer ID Wrapper
-const CustomerAnalyticsWrapper = ({ onNavigate }) => {
-  // localStorage'dan customer ID'yi al, yoksa default 1 kullan (mock data için)
-  const storedId = localStorage.getItem('selectedCustomerId');
-  const customerId = storedId ? parseInt(storedId) : 1; // Default: 1 (mock data'da var)
-  
-  return <CustomerAnalyticsPage customerId={customerId} onNavigate={onNavigate} />;
-};
+import CustomerAnalyticsWrapper from '../modules/analytics-service/pages/CustomerAnalyticsWrapper';
+import AITaskListPage from '../modules/analytics-service/pages/AITaskListPage';
+import OnboardingListPage from '../modules/analytics-service/pages/OnboardingListPage';
+import ActivityHistoryPage from '../modules/analytics-service/pages/ActivityHistoryPage';
 
 export const analyticsRoutes = {
+  // 📈 Genel Bakış
   dashboard: {
     component: DashboardPage
   },
-  musteriAnaliz: {
+  
+  // 📋 Süreç Yönetimi (eski Müşteri Analizi)
+  surecYonetimi: {
     component: CustomerAnalyticsWrapper
+  },
+  
+  // 🤖 AI İçerik Takibi
+  aiTaskList: {
+    component: AITaskListPage
+  },
+  
+  // 🚀 Onboarding Takibi
+  onboardingList: {
+    component: OnboardingListPage
+  },
+  
+  // 📜 Aktivite Geçmişi
+  activityHistory: {
+    component: ActivityHistoryPage
   }
 };
