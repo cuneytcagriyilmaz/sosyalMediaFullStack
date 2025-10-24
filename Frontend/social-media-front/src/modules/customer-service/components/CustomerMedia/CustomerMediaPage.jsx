@@ -1,7 +1,7 @@
-// modules/customer-service/components/CustomerMedia/CustomerMediaPage.jsx
+// src/modules/customer-service/components/CustomerMedia/CustomerMediaPage.jsx
+
 import { useState, useEffect } from 'react';
-import customerService from '../../services/customerService';
-import {
+ import {
   useCustomerMedia,
   useMediaUpload,
   useMediaSelection,
@@ -12,9 +12,10 @@ import {
   UploadSection,
   MediaGallery
 } from './components';
+import customerService from '../../services/customerService';
 
 export default function CustomerMediaPage() {
-  const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState([]); // ✅ Boş array
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [error, setError] = useState(null);
 
@@ -42,10 +43,33 @@ export default function CustomerMediaPage() {
 
   const fetchCustomers = async () => {
     try {
-      const data = await customerService.getAllCustomers();
-      setCustomers(data);
+      const response = await customerService.getAllCustomers();
+      
+      console.log('📥 CustomerMediaPage response:', response);
+
+      // ✅ Response formatını handle et
+      if (response.success && response.data) {
+        const customerArray = Array.isArray(response.data) 
+          ? response.data 
+          : [];
+        
+        console.log('✅ Setting customers:', customerArray.length);
+        setCustomers(customerArray);
+      } else if (Array.isArray(response)) {
+        // Eski format
+        console.log('✅ Setting customers (old format):', response.length);
+        setCustomers(response);
+      } else if (Array.isArray(response.data)) {
+        console.log('✅ Setting customers (alt format):', response.data.length);
+        setCustomers(response.data);
+      } else {
+        console.warn('⚠️ Unexpected response format:', response);
+        setCustomers([]);
+        setError('Müşteriler yüklenemedi');
+      }
     } catch (err) {
-      console.error('Müşteriler yüklenemedi:', err);
+      console.error('❌ Müşteriler yüklenemedi:', err);
+      setCustomers([]); // ✅ Hata durumunda boş array
       setError('Müşteriler yüklenemedi');
     }
   };
@@ -121,7 +145,7 @@ export default function CustomerMediaPage() {
                 Henüz media dosyası yüklenmemiş
               </p>
               <p className="text-gray-500 text-sm mt-2">
-                Yukarıdaki formdan dosya yükleyebilirsiniz
+                Yukarıdaki formdan dosya yükleyebilirsinizzzzz
               </p>
             </div>
           )}

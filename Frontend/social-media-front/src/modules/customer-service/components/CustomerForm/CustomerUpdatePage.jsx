@@ -17,6 +17,9 @@ import {
     UpdateMediaUploadSection
 } from './UpdateFormSections';
 import { MediaGallery } from '../CustomerMedia/components';
+// src/modules/customer-service/components/CustomerForm/CustomerUpdatePage.jsx
+
+// ... (imports aynı)
 
 export default function CustomerUpdatePage() {
     const {
@@ -56,6 +59,9 @@ export default function CustomerUpdatePage() {
         handleUploadNewMedia
     } = useCustomerUpdate();
 
+    // ✅ Array check
+    const customerList = Array.isArray(customers) ? customers : [];
+
     // Media için hook'lar
     const allMedia = formData?.media || [];
     const selection = useMediaSelection();
@@ -64,8 +70,6 @@ export default function CustomerUpdatePage() {
     // Media silme fonksiyonu
     const handleDeleteMedia = async (mediaId, fileName) => {
         try {
-            // customerService'den deleteMedia çağır (eğer yoksa ekle)
-            // await customerService.deleteMedia(selectedCustomerId, mediaId);
             await handleMediaUpdate();
         } catch (error) {
             console.error('Media silinemedi:', error);
@@ -99,9 +103,10 @@ export default function CustomerUpdatePage() {
                         className={INPUT_CLASS}
                     >
                         <option value="">-- Bir müşteri seçiniz --</option>
-                        {customers.map(c => (
+                        {/* ✅ Safe mapping */}
+                        {customerList.map(c => (
                             <option key={c.id} value={c.id} className="text-gray-900">
-                                {c.companyName} ({c.sector})
+                                {c.companyName || c.company_name || 'İsimsiz'} ({c.sector || 'Sektör yok'})
                             </option>
                         ))}
                     </select>
@@ -116,8 +121,8 @@ export default function CustomerUpdatePage() {
 
                 {selectedCustomerId && formData && !loading && (
                     <div className="space-y-6 sm:space-y-8">
+                        {/* ... (sections aynı kalacak) */}
 
-                        {/* 1. Temel Bilgiler */}
                         <UpdateBasicInfoSection
                             formData={formData}
                             setFormData={setFormData}
@@ -127,7 +132,6 @@ export default function CustomerUpdatePage() {
                             labelClass={LABEL_CLASS}
                         />
 
-                        {/* 2. İletişim Kişileri */}
                         {formData.contacts && (
                             <UpdateContactsSection
                                 contacts={formData.contacts}
@@ -141,7 +145,6 @@ export default function CustomerUpdatePage() {
                             />
                         )}
 
-                        {/* 3. Sosyal Medya */}
                         {formData.socialMedia && (
                             <UpdateSocialMediaSection
                                 socialMedia={formData.socialMedia}
@@ -153,7 +156,6 @@ export default function CustomerUpdatePage() {
                             />
                         )}
 
-                        {/* 4. Hedef Kitle */}
                         {formData.targetAudience && (
                             <UpdateTargetAudienceSection
                                 targetAudience={formData.targetAudience}
@@ -165,7 +167,6 @@ export default function CustomerUpdatePage() {
                             />
                         )}
 
-                        {/* 5. SEO */}
                         {formData.seo && (
                             <UpdateSeoSection
                                 seo={formData.seo}
@@ -177,7 +178,6 @@ export default function CustomerUpdatePage() {
                             />
                         )}
 
-                        {/* 6. API Anahtarları */}
                         {formData.apiKeys && (
                             <UpdateApiKeysSection
                                 apiKeys={formData.apiKeys}
@@ -189,7 +189,6 @@ export default function CustomerUpdatePage() {
                             />
                         )}
 
-                        {/* 7. Yeni Medya Yükleme */}
                         <UpdateMediaUploadSection
                             logoFiles={logoFiles}
                             setLogoFiles={setLogoFiles}
@@ -205,18 +204,16 @@ export default function CustomerUpdatePage() {
                             labelClass={LABEL_CLASS}
                         />
 
-                        {/* 8. Mevcut Medya Galerisi */}
                         {allMedia.length > 0 && (
                             <MediaGallery
                                 allMedia={allMedia}
                                 customerId={selectedCustomerId}
                                 onMediaUpdate={handleMediaUpdate}
                                 onDeleteMedia={handleDeleteMedia}
-                                filters={filters}        // ✅ Eklendi
-                                selection={selection}    // ✅ Eklendi
+                                filters={filters}
+                                selection={selection}
                             />
                         )}
-
                     </div>
                 )}
             </div>

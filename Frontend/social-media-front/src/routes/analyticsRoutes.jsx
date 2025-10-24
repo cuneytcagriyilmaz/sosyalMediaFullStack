@@ -5,7 +5,8 @@ import CustomerAnalyticsWrapper from '../modules/analytics-service/pages/Custome
 import AITaskListPage from '../modules/analytics-service/pages/AITaskListPage';
 import OnboardingListPage from '../modules/analytics-service/pages/OnboardingListPage';
 import ActivityHistoryPage from '../modules/analytics-service/pages/ActivityHistoryPage';
-
+import CustomerNotesPage from '../modules/analytics-service/pages/CustomerNotesPage';
+ 
 export const analyticsRoutes = {
   // 📈 Genel Bakış
   dashboard: {
@@ -30,5 +31,10 @@ export const analyticsRoutes = {
   // 📜 Aktivite Geçmişi
   activityHistory: {
     component: ActivityHistoryPage
+  },
+
+  // ✅ YENİ: 📝 Müşteri Notları
+  customerNotes: {
+    component: CustomerNotesPage
   }
 };

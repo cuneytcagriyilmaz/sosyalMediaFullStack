@@ -1,7 +1,7 @@
 // src/shared/layouts/AppLayout/AppContent.jsx
 
 import { customerRoutes } from "../../../routes/customerRoutes";
-import { analyticsRoutes } from "../../../routes/analyticsRoutes"; // ✅ YENİ
+import { analyticsRoutes } from "../../../routes/analyticsRoutes";
 
 // Placeholder Component
 const PagePlaceholder = ({ title, icon }) => (
@@ -28,15 +28,19 @@ const otherRoutes = {
   }
 };
 
-// ✅ Tüm Route'ları birleştir
+// ✅ DÜZELTME: customerRoutes en başta olmalı
 const ROUTES = {
-  ...analyticsRoutes,  // ✅ YENİ - En başa (öncelik)
-  ...customerRoutes,
-  ...otherRoutes
+  ...customerRoutes,    // ✅ Customer routes önce (musteriListesi vs.)
+  ...analyticsRoutes,   // ✅ Analytics routes sonra (dashboard, customerNotes vs.)
+  ...otherRoutes        // ✅ Diğer routes en sonda
 };
 
 export default function AppContent({ activeMenu, onNavigate }) {
   const route = ROUTES[activeMenu];
+
+  // Debug için (geliştirme aşamasında)
+  console.log('Active Menu:', activeMenu);
+  console.log('Route Found:', !!route);
 
   if (!route) {
     return (
@@ -47,6 +51,12 @@ export default function AppContent({ activeMenu, onNavigate }) {
               <span className="text-6xl">🤷</span>
               <p className="mt-4 text-lg">Sayfa bulunamadı</p>
               <p className="text-sm text-gray-400 mt-2">Menu: {activeMenu}</p>
+              <button
+                onClick={() => onNavigate('dashboard')}
+                className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+              >
+                Dashboard'a Dön
+              </button>
             </div>
           </div>
         </section>

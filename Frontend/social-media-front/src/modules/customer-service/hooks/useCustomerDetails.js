@@ -1,10 +1,11 @@
-// modules/customer-service/hooks/useCustomerDetails.js
-import { useState, useEffect } from 'react';
-import { useToast } from '../../../shared/context/ToastContext';
-import customerService from '../services/customerService';
+// src/modules/customer-service/hooks/useCustomerDetails.js
 
+import { useState, useEffect } from 'react';
+ import customerService from '../services/customerService';
+import { useToast } from '../../../shared/context/ToastContext';
+ 
 export default function useCustomerDetails() {
-  const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState([]); // ✅ Boş array
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,11 +28,39 @@ export default function useCustomerDetails() {
 
   const fetchCustomers = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      const data = await customerService.getAllCustomers();
-      setCustomers(data);
+      const response = await customerService.getAllCustomers();
+      
+      console.log('📥 useCustomerDetails response:', response);
+
+      // ✅ Response formatını handle et
+      if (response.success && response.data) {
+        // Backend: { success: true, data: [...] }
+        const customerArray = Array.isArray(response.data) 
+          ? response.data 
+          : [];
+        
+        console.log('✅ Setting customers:', customerArray.length);
+        setCustomers(customerArray);
+      } else if (Array.isArray(response)) {
+        // Eski format: direkt array döndürüyorsa
+        console.log('✅ Setting customers (old format):', response.length);
+        setCustomers(response);
+      } else if (Array.isArray(response.data)) {
+        // Başka bir format
+        console.log('✅ Setting customers (alt format):', response.data.length);
+        setCustomers(response.data);
+      } else {
+        console.warn('⚠️ Unexpected response format:', response);
+        setCustomers([]);
+        setError("Müşteri listesi formatı beklenmedik");
+        toast.error("Müşteri listesi yüklenemedi!");
+      }
     } catch (err) {
-      console.error("Müşteriler yüklenemedi:", err);
+      console.error("❌ Müşteriler yüklenemedi:", err);
+      setCustomers([]); // ✅ Hata durumunda boş array
       setError("Müşteriler yüklenemedi");
       toast.error("Müşteriler yüklenemedi!");
     } finally {
@@ -46,11 +75,30 @@ export default function useCustomerDetails() {
     }
 
     setLoading(true);
+    setError(null);
+    
     try {
-      const customer = await customerService.getCustomerById(customerId);
-      setSelectedCustomer(customer);
+      const response = await customerService.getCustomerById(customerId);
+      
+      console.log('📥 Selected customer response:', response);
+
+      // ✅ Response formatını handle et
+      if (response.success && response.data) {
+        // Backend: { success: true, data: {...} }
+        setSelectedCustomer(response.data);
+      } else if (response.id) {
+        // Eski format: direkt customer object döndürüyorsa
+        setSelectedCustomer(response);
+      } else if (response.data && response.data.id) {
+        // Başka bir format
+        setSelectedCustomer(response.data);
+      } else {
+        console.warn('⚠️ Unexpected customer format:', response);
+        setError("Müşteri detayı yüklenemedi");
+        toast.error("Müşteri detayı yüklenemedi!");
+      }
     } catch (err) {
-      console.error("Müşteri detayı yüklenemedi:", err);
+      console.error("❌ Müşteri detayı yüklenemedi:", err);
       setError("Müşteri detayı yüklenemedi");
       toast.error("Müşteri detayı yüklenemedi!");
     } finally {
@@ -70,6 +118,7 @@ export default function useCustomerDetails() {
     loading,
     error,
     handleSelectCustomer,
-    handleMediaUpdate
+    handleMediaUpdate,
+    refresh: fetchCustomers // ✅ Yenileme fonksiyonu
   };
 }

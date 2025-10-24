@@ -1,10 +1,11 @@
-// modules/customer-service/hooks/useCustomerUpdate.js
+// src/modules/customer-service/hooks/useCustomerUpdate.js
+
 import { useState, useEffect } from "react";
-import { useToast } from "../../../shared/context/ToastContext";
+ import { useToast } from "../../../shared/context/ToastContext";
 import customerService from "../services/customerService";
 
 export default function useCustomerUpdate() {
-  const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState([]); // ✅ Boş array
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -32,11 +33,36 @@ export default function useCustomerUpdate() {
   }, []);
 
   const fetchCustomers = async () => {
+    setError(null);
     try {
-      const data = await customerService.getAllCustomers();
-      setCustomers(data);
+      const response = await customerService.getAllCustomers();
+      
+      console.log('📥 useCustomerUpdate response:', response);
+
+      // ✅ Response formatını handle et
+      if (response.success && response.data) {
+        const customerArray = Array.isArray(response.data) 
+          ? response.data 
+          : [];
+        
+        console.log('✅ Setting customers:', customerArray.length);
+        setCustomers(customerArray);
+      } else if (Array.isArray(response)) {
+        // Eski format
+        console.log('✅ Setting customers (old format):', response.length);
+        setCustomers(response);
+      } else if (Array.isArray(response.data)) {
+        console.log('✅ Setting customers (alt format):', response.data.length);
+        setCustomers(response.data);
+      } else {
+        console.warn('⚠️ Unexpected response format:', response);
+        setCustomers([]);
+        setError("Müşteri listesi formatı beklenmedik");
+        toast.error("Müşteriler yüklenemedi!");
+      }
     } catch (err) {
-      console.error("Müşteriler yüklenemedi:", err);
+      console.error("❌ Müşteriler yüklenemedi:", err);
+      setCustomers([]); // ✅ Hata durumunda boş array
       setError("Müşteriler yüklenemedi");
       toast.error("Müşteriler yüklenemedi!");
     }
@@ -51,12 +77,28 @@ export default function useCustomerUpdate() {
 
     setSelectedCustomerId(customerId);
     setLoading(true);
+    setError(null);
 
     try {
-      const customer = await customerService.getCustomerById(customerId);
-      setFormData(customer);
+      const response = await customerService.getCustomerById(customerId);
+      
+      console.log('📥 Selected customer response:', response);
+
+      // ✅ Response formatını handle et
+      if (response.success && response.data) {
+        setFormData(response.data);
+      } else if (response.id) {
+        // Eski format: direkt customer object
+        setFormData(response);
+      } else if (response.data && response.data.id) {
+        setFormData(response.data);
+      } else {
+        console.warn('⚠️ Unexpected customer format:', response);
+        setError("Müşteri detayı yüklenemedi");
+        toast.error("Müşteri detayı yüklenemedi!");
+      }
     } catch (err) {
-      console.error("Müşteri detayı yüklenemedi:", err);
+      console.error("❌ Müşteri detayı yüklenemedi:", err);
       setError("Müşteri detayı yüklenemedi");
       toast.error("Müşteri detayı yüklenemedi!");
     } finally {
@@ -109,9 +151,14 @@ export default function useCustomerUpdate() {
         status: formData.status
       };
 
-      await customerService.updateBasicInfo(selectedCustomerId, data);
-      toast.success("Temel bilgiler başarıyla güncellendi!");
-      await handleSelectCustomer(selectedCustomerId);
+      const response = await customerService.updateBasicInfo(selectedCustomerId, data);
+      
+      if (response.success) {
+        toast.success("Temel bilgiler başarıyla güncellendi!");
+        await handleSelectCustomer(selectedCustomerId);
+      } else {
+        toast.error("Güncelleme başarısız!");
+      }
     } catch (err) {
       console.error("Güncelleme hatası:", err);
       const errorMsg = err.response?.data?.message || err.message;
@@ -124,9 +171,14 @@ export default function useCustomerUpdate() {
   const handleSaveContacts = async () => {
     setLoadingContacts(true);
     try {
-      await customerService.updateContacts(selectedCustomerId, formData.contacts);
-      toast.success("İletişim kişileri başarıyla güncellendi!");
-      await handleSelectCustomer(selectedCustomerId);
+      const response = await customerService.updateContacts(selectedCustomerId, formData.contacts);
+      
+      if (response.success) {
+        toast.success("İletişim kişileri başarıyla güncellendi!");
+        await handleSelectCustomer(selectedCustomerId);
+      } else {
+        toast.error("Güncelleme başarısız!");
+      }
     } catch (err) {
       console.error("Güncelleme hatası:", err);
       const errorMsg = err.response?.data?.message || err.message;
@@ -144,9 +196,14 @@ export default function useCustomerUpdate() {
   const handleSaveSocialMedia = async () => {
     setLoadingSocialMedia(true);
     try {
-      await customerService.updateSocialMedia(selectedCustomerId, formData.socialMedia);
-      toast.success("Sosyal medya bilgileri başarıyla güncellendi!");
-      await handleSelectCustomer(selectedCustomerId);
+      const response = await customerService.updateSocialMedia(selectedCustomerId, formData.socialMedia);
+      
+      if (response.success) {
+        toast.success("Sosyal medya bilgileri başarıyla güncellendi!");
+        await handleSelectCustomer(selectedCustomerId);
+      } else {
+        toast.error("Güncelleme başarısız!");
+      }
     } catch (err) {
       console.error("Güncelleme hatası:", err);
       const errorMsg = err.response?.data?.message || err.message;
@@ -159,9 +216,14 @@ export default function useCustomerUpdate() {
   const handleSaveTargetAudience = async () => {
     setLoadingTargetAudience(true);
     try {
-      await customerService.updateTargetAudience(selectedCustomerId, formData.targetAudience);
-      toast.success("Hedef kitle bilgileri başarıyla güncellendi!");
-      await handleSelectCustomer(selectedCustomerId);
+      const response = await customerService.updateTargetAudience(selectedCustomerId, formData.targetAudience);
+      
+      if (response.success) {
+        toast.success("Hedef kitle bilgileri başarıyla güncellendi!");
+        await handleSelectCustomer(selectedCustomerId);
+      } else {
+        toast.error("Güncelleme başarısız!");
+      }
     } catch (err) {
       console.error("Güncelleme hatası:", err);
       const errorMsg = err.response?.data?.message || err.message;
@@ -174,9 +236,14 @@ export default function useCustomerUpdate() {
   const handleSaveSeo = async () => {
     setLoadingSeo(true);
     try {
-      await customerService.updateSeo(selectedCustomerId, formData.seo);
-      toast.success("SEO bilgileri başarıyla güncellendi!");
-      await handleSelectCustomer(selectedCustomerId);
+      const response = await customerService.updateSeo(selectedCustomerId, formData.seo);
+      
+      if (response.success) {
+        toast.success("SEO bilgileri başarıyla güncellendi!");
+        await handleSelectCustomer(selectedCustomerId);
+      } else {
+        toast.error("Güncelleme başarısız!");
+      }
     } catch (err) {
       console.error("Güncelleme hatası:", err);
       const errorMsg = err.response?.data?.message || err.message;
@@ -189,9 +256,14 @@ export default function useCustomerUpdate() {
   const handleSaveApiKeys = async () => {
     setLoadingApiKeys(true);
     try {
-      await customerService.updateApiKeys(selectedCustomerId, formData.apiKeys);
-      toast.success("API anahtarları başarıyla güncellendi!");
-      await handleSelectCustomer(selectedCustomerId);
+      const response = await customerService.updateApiKeys(selectedCustomerId, formData.apiKeys);
+      
+      if (response.success) {
+        toast.success("API anahtarları başarıyla güncellendi!");
+        await handleSelectCustomer(selectedCustomerId);
+      } else {
+        toast.error("Güncelleme başarısız!");
+      }
     } catch (err) {
       console.error("Güncelleme hatası:", err);
       const errorMsg = err.response?.data?.message || err.message;
@@ -294,6 +366,7 @@ export default function useCustomerUpdate() {
     handleSaveSeo,
     handleSaveApiKeys,
     handleMediaUpdate,
-    handleUploadNewMedia
+    handleUploadNewMedia,
+    refresh: fetchCustomers  
   };
 }

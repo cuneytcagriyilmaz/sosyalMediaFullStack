@@ -109,7 +109,7 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
                 <span>Genel Bakış</span>
               </button>
 
-              {/* ✅ YENİ: Süreç Yönetimi (eski Müşteri Analizi) */}
+              {/* Süreç Yönetimi */}
               <button
                 onClick={() => onMenuChange("surecYonetimi")}
                 className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
@@ -159,6 +159,19 @@ export default function AppSidebar({ activeMenu, onMenuChange, isOpen, onClose }
               >
                 <span className="text-base mr-2">📜</span>
                 <span>Aktivite Geçmişi</span>
+              </button>
+
+              {/* ✅ YENİ: Müşteri Notları */}
+              <button
+                onClick={() => onMenuChange("customerNotes")}
+                className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 text-sm ${
+                  activeMenu === "customerNotes"
+                    ? "bg-indigo-100 text-indigo-700 font-medium transform scale-[1.02]"
+                    : "text-gray-700 hover:bg-indigo-50 hover:scale-[1.01]"
+                }`}
+              >
+                <span className="text-base mr-2">📝</span>
+                <span>Müşteri Notları</span>
               </button>
             </div>
           </div>

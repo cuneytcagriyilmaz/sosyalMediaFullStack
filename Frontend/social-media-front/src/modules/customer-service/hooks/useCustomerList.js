@@ -1,8 +1,7 @@
 // src/modules/customer-service/components/CustomerList/hooks/useCustomerList.js
 
 import { useState, useEffect } from 'react';
-import customerService from "../services/customerService";
-
+import customerService from '../services/customerService';
  
 export default function useCustomerList() {
   const [customers, setCustomers] = useState([]);
@@ -12,6 +11,7 @@ export default function useCustomerList() {
   const [packageFilter, setPackageFilter] = useState('ALL');
   const [sortBy, setSortBy] = useState('name-asc');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchCustomers();
@@ -23,25 +23,58 @@ export default function useCustomerList() {
 
   const fetchCustomers = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const data = await customerService.getAllCustomers();
-      setCustomers(data);
+      const response = await customerService.getAllCustomers();
+      
+      console.log('📥 useCustomerList response:', response);
+
+      // ✅ Response formatını kontrol et
+      if (response.success && response.data) {
+        const customerArray = Array.isArray(response.data) 
+          ? response.data 
+          : [];
+        
+        console.log('✅ Setting customers:', customerArray.length);
+        setCustomers(customerArray);
+      } else {
+        console.warn('⚠️ Invalid response format:', response);
+        setCustomers([]);
+        setError('Müşteriler yüklenemedi');
+      }
     } catch (error) {
-      console.error('Müşteriler yüklenemedi:', error);
+      console.error('❌ Müşteriler yüklenemedi:', error);
+      setCustomers([]);
+      setError('Bir hata oluştu');
     } finally {
       setLoading(false);
     }
   };
 
   const filterAndSortCustomers = () => {
+    console.log('🔍 Filtering customers:', customers);
+
+    // ✅ Array kontrolü
+    if (!Array.isArray(customers)) {
+      console.warn('⚠️ customers is not an array:', customers);
+      setFilteredCustomers([]);
+      return;
+    }
+
     let filtered = [...customers];
 
     // Arama
     if (searchTerm) {
-      filtered = filtered.filter(c =>
-        c.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.sector.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter(c => {
+        const companyName = c.companyName || c.company_name || '';
+        const sector = c.sector || '';
+        const searchLower = searchTerm.toLowerCase();
+        
+        return (
+          companyName.toLowerCase().includes(searchLower) ||
+          sector.toLowerCase().includes(searchLower)
+        );
+      });
     }
 
     // Status filtresi
@@ -51,31 +84,40 @@ export default function useCustomerList() {
 
     // Paket filtresi
     if (packageFilter !== 'ALL') {
-      filtered = filtered.filter(c => c.membershipPackage === packageFilter);
+      filtered = filtered.filter(c => 
+        (c.membershipPackage || c.membership_package) === packageFilter
+      );
     }
 
     // Sıralama
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'name-asc':
-          return a.companyName.localeCompare(b.companyName);
+          return (a.companyName || a.company_name || '').localeCompare(
+            b.companyName || b.company_name || '', 'tr'
+          );
         case 'name-desc':
-          return b.companyName.localeCompare(a.companyName);
+          return (b.companyName || b.company_name || '').localeCompare(
+            a.companyName || a.company_name || '', 'tr'
+          );
         case 'date-asc':
-          return new Date(a.createdAt) - new Date(b.createdAt);
+          return new Date(a.createdAt || a.created_at) - new Date(b.createdAt || b.created_at);
         case 'date-desc':
-          return new Date(b.createdAt) - new Date(a.createdAt);
+          return new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at);
         default:
           return 0;
       }
     });
 
+    console.log('✅ Filtered customers:', filtered.length);
     setFilteredCustomers(filtered);
   };
 
   return {
     customers: filteredCustomers,
+    allCustomers: customers,
     loading,
+    error,
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -83,6 +125,7 @@ export default function useCustomerList() {
     packageFilter,
     setPackageFilter,
     sortBy,
-    setSortBy
+    setSortBy,
+    refresh: fetchCustomers
   };
 }

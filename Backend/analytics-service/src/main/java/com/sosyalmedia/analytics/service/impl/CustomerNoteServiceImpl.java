@@ -8,7 +8,7 @@ import com.sosyalmedia.analytics.exception.ResourceNotFoundException;
 import com.sosyalmedia.analytics.mapper.CustomerNoteMapper;
 import com.sosyalmedia.analytics.repository.CustomerNoteRepository;
 import com.sosyalmedia.analytics.service.CustomerNoteService;
-import com.sosyalmedia.analytics.service.CustomerValidationService; // ✅ YENİ
+import com.sosyalmedia.analytics.service.CustomerValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class CustomerNoteServiceImpl implements CustomerNoteService {
 
     private final CustomerNoteRepository noteRepository;
     private final CustomerNoteMapper noteMapper;
-    private final CustomerValidationService customerValidationService; // ✅ YENİ
+    private final CustomerValidationService customerValidationService;
 
     @Override
     public CustomerNoteDTO createNote(CustomerNoteDTO noteDTO) {
@@ -90,7 +90,7 @@ public class CustomerNoteServiceImpl implements CustomerNoteService {
     public List<CustomerNoteDTO> getNotesByCustomerId(Long customerId) {
         log.info("Fetching all notes for customer: {}", customerId);
 
-        // ✅ VALIDATION: Müşteri var mı kontrol et
+        //  VALIDATION: Müşteri var mı kontrol et
         customerValidationService.validateCustomerExists(customerId);
 
         List<CustomerNote> notes = noteRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
@@ -100,7 +100,7 @@ public class CustomerNoteServiceImpl implements CustomerNoteService {
     @Override
     @Transactional(readOnly = true)
     public long countNotesByCustomerId(Long customerId) {
-        // ✅ VALIDATION: Müşteri var mı kontrol et
+        //  VALIDATION: Müşteri var mı kontrol et
         customerValidationService.validateCustomerExists(customerId);
 
         return noteRepository.countByCustomerId(customerId);

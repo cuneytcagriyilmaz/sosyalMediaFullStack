@@ -49,10 +49,7 @@ const analyticsService = {
         }
     },
 
-    // ============================================
-    // ACTIVITIES SERVICE (✅ YENİ METODLAR)
-    // ============================================
-
+ 
     /**
      * Yeni aktivite ekle
      */
@@ -252,16 +249,13 @@ const analyticsService = {
         }
     },
 
-    /**
-     * Müşteri notu ekle
-     */
-    addCustomerNote: async (customerId, noteText) => {
+    addCustomerNote: async (customerId, noteText, createdBy = 'Admin') => {
         try {
             const response = await httpClient.post(
-                API_ENDPOINTS.CUSTOMER_NOTES(customerId),
+                `${API_ENDPOINTS.CUSTOMER_NOTES(customerId)}`,
                 {
-                    text: noteText,
-                    createdBy: 'Admin'
+                    note: noteText,
+                    createdBy: createdBy
                 }
             );
             return response;
@@ -270,6 +264,36 @@ const analyticsService = {
             return { success: false, error: error.error || 'Not eklenemedi' };
         }
     },
+
+    /**
+     * Müşteri notunu güncelle 
+     */
+    updateCustomerNote: async (noteId, noteData) => {
+        try {
+            const response = await httpClient.put(
+                `${API_ENDPOINTS.NOTE_BY_ID(noteId)}`,
+                noteData
+            );
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to update note ${noteId}:`, error);
+            return { success: false, error: error.error || 'Not güncellenemedi' };
+        }
+    },
+
+    /**
+     * Müşteri notunu sil  
+     */
+    deleteCustomerNote: async (noteId) => {
+        try {
+            const response = await httpClient.delete(`${API_ENDPOINTS.NOTE_BY_ID(noteId)}`);
+            return response;
+        } catch (error) {
+            console.error(`❌ Failed to delete note ${noteId}:`, error);
+            return { success: false, error: error.error || 'Not silinemedi' };
+        }
+    },
+
 
     // ============================================
     // AI CONTENT TASKS SERVICE
