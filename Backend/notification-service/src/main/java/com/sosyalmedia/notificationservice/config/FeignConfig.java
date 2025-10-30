@@ -1,62 +1,38 @@
 package com.sosyalmedia.notificationservice.config;
 
-import feign.Logger;
-import feign.RequestInterceptor;
-import feign.codec.ErrorDecoder;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import feign.codec.Decoder;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.support.SpringDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 @Configuration
-@Slf4j
 public class FeignConfig {
 
-    /**
-     * RestTemplate Bean (Calendarific API için)
-     */
     @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
+    public Decoder feignDecoder() {
+        ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Feign Logger Level
-     */
-    @Bean
-    Logger.Level feignLoggerLevel() {
-        return Logger.Level.FULL;
-    }
+        //  Bilinmeyen field'ları yoksay
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    /**
-     * Request Interceptor (Header ekleme, logging vb.)
-     */
-    @Bean
-    public RequestInterceptor requestInterceptor() {
-        return requestTemplate -> {
-            requestTemplate.header("X-Source-Service", "notification-service");
-            log.debug("Feign Request: {} {}",
-                    requestTemplate.method(),
-                    requestTemplate.url());
-        };
-    }
+        // Null field'ları yoksay
+        objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
 
-    /**
-     * Custom Error Decoder
-     */
-    @Bean
-    public ErrorDecoder errorDecoder() {
-        return (methodKey, response) -> {
-            log.error("Feign Error: Method={}, Status={}, Reason={}",
-                    methodKey,
-                    response.status(),
-                    response.reason());
+        //  Java 8 Date/Time desteği
+        objectMapper.registerModule(new JavaTimeModule());
 
-            return new RuntimeException(
-                    String.format("Feign client error: %s - Status: %d",
-                            methodKey,
-                            response.status())
-            );
-        };
+        MappingJackson2HttpMessageConverter converter =
+                new MappingJackson2HttpMessageConverter(objectMapper);
+
+        ObjectFactory<HttpMessageConverters> objectFactory =
+                () -> new HttpMessageConverters(converter);
+
+        return new SpringDecoder(objectFactory);
     }
 }

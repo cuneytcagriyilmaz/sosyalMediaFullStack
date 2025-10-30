@@ -1,3 +1,4 @@
+ # Backend/customer-service/src/main/resources/application.yml
 spring:
   application:
     name: customer-service

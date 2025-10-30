@@ -6,12 +6,12 @@ import AppSidebar from "./AppSidebar";
 import AppContent from "./AppContent";
 
 export default function AppLayout() {
-  const [activeMenu, setActiveMenu] = useState("dashboard"); // ✅ "anasayfa" yerine "dashboard"
+  const [activeMenu, setActiveMenu] = useState("anasayfa");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleMenuChange = (menu) => {
     setActiveMenu(menu);
-    setSidebarOpen(false);
+    setSidebarOpen(false); // Mobilde menü kapansın
   };
 
   return (

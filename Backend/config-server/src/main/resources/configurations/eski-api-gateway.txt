@@ -3,9 +3,6 @@ server:
   address: 0.0.0.0
 
 spring:
-  application:
-    name: api-gateway
-
   cloud:
     gateway:
       # Global CORS - Vite + React için
@@ -37,61 +34,27 @@ spring:
 
       # Routes
       routes:
-        # ========== NOTIFICATION SERVICE - POST DEADLINES ==========
-        - id: notification-service-post-deadlines
-          uri: lb://notification-service
-          predicates:
-            - Path=/api/notifications/post-deadlines,/api/notifications/post-deadlines/**
-          filters:
-            - RewritePath=/api/notifications/post-deadlines(?<segment>/?.*), /api/v1/notifications/post-deadlines$\{segment}
-          metadata:
-            auth-required: "false"
-          order: 1
-
-        # ========== NOTIFICATION SERVICE - DASHBOARD ==========
-        - id: notification-service-dashboard
-          uri: lb://notification-service
-          predicates:
-            - Path=/api/notifications/dashboard,/api/notifications/dashboard/**
-          filters:
-            - RewritePath=/api/notifications/dashboard(?<segment>/?.*), /api/v1/notifications/dashboard$\{segment}
-          metadata:
-            auth-required: "false"
-          order: 2
-
-        # ========== NOTIFICATION SERVICE - ARCHIVE ==========
-        - id: notification-service-archive
-          uri: lb://notification-service
-          predicates:
-            - Path=/api/notifications/archive,/api/notifications/archive/**
-          filters:
-            - RewritePath=/api/notifications/archive(?<segment>/?.*), /api/v1/notifications/archive$\{segment}
-          metadata:
-            auth-required: "false"
-          order: 3
-
-        # ========== CUSTOMER SERVICE ==========
-        # ✅ RewritePath EKLENDİ!
-        - id: customer-service
-          uri: lb://customer-service
-          predicates:
-            - Path=/api/customers,/api/customers/**
-          filters:
-            - RewritePath=/api/customers(?<segment>/?.*), /api/customers$\{segment}
-          metadata:
-            auth-required: "false"
-          order: 4
-
-        # ========== ANALYTICS SERVICE ==========
+        # ========== ANALYTICS SERVICE (ÖNCELİKLİ!) ==========
+        # ✅ TÜM analytics route'larını TEK route'a indirgedik
         - id: analytics-service
           uri: lb://analytics-service
           predicates:
-            - Path=/api/analytics,/api/analytics/**
+            - Path=/api/analytics/**
           filters:
-            - RewritePath=/api/analytics(?<segment>/?.*), /api/v1/analytics$\{segment}
+            - RewritePath=/api/analytics/(?<segment>.*), /api/v1/analytics/$\{segment}
           metadata:
             auth-required: "false"
-          order: 5
+          order: 1  # ✅ EN YÜKSEK ÖNCELİK
+
+        # ========== CUSTOMER SERVICE ==========
+        - id: customer-service
+          uri: lb://customer-service
+          predicates:
+            - Path=/api/customers/**
+          metadata:
+            auth-required: "true"
+            roles: "USER,ADMIN"
+          order: 2
 
         # ========== DISCOVERY SERVER ==========
         - id: discovery-server
@@ -154,7 +117,7 @@ management:
 # Logging
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG  # ✅ DEBUG yap
     reactor.netty.http.client: DEBUG
     com.sosyalmedia.apigateway: DEBUG
   pattern:

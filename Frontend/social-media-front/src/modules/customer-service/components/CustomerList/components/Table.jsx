@@ -90,7 +90,6 @@ export default function Table({ customers, onNavigate }) {
                   })}
                 </td>
                 <td className="px-6 py-4 text-right">
-                  {/* ✅ YENİ - 2 Buton Yan Yana */}
                   <div className="flex gap-2 justify-end">
                     {/* Bilgiler Butonu */}
                     <button
@@ -105,11 +104,11 @@ export default function Table({ customers, onNavigate }) {
                       <span>Bilgiler</span>
                     </button>
 
-                    {/* ✅ YENİ - Analiz Butonu */}
+                    {/* ✅ DÜZELTME: musteriAnaliz → surecYonetimi */}
                     <button
                       onClick={() => {
                         localStorage.setItem('selectedCustomerId', customer.id);
-                        onNavigate?.('musteriAnaliz');
+                        onNavigate?.('surecYonetimi');
                       }}
                       className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-medium flex items-center gap-2"
                       title="Süreç Analizi"

@@ -1,9 +1,21 @@
+
+
+
+#Backend/config-server/src/main/resources/configurations/notification-service.yml
 server:
-  port: 8083
+  port: 8084
+  address: 0.0.0.0
 
 spring:
   application:
     name: notification-service
+
+  web:
+    resources:
+      add-mappings: false  # Static resource mapping'i kapat
+
+  mvc:
+    throw-exception-if-no-handler-found: true  # 404 için exception fırlat
 
   datasource:
     url: jdbc:postgresql://localhost:5432/sosyalmedia_notification_service
@@ -27,8 +39,9 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+    open-in-view: false
 
-  # ✅ MAIL CONFIGURATION (YENİ EKLENEN)
+  # ✅ MAIL CONFIGURATION
   mail:
     host: smtp.gmail.com
     port: 587
@@ -43,29 +56,7 @@ spring:
             required: true
         debug: false
 
-  # ✅ QUARTZ SCHEDULER (YENİ EKLENEN)
-  quartz:
-    job-store-type: jdbc
-    jdbc:
-      initialize-schema: always
-    properties:
-      org:
-        quartz:
-          scheduler:
-            instanceName: NotificationServiceScheduler
-            instanceId: AUTO
-          threadPool:
-            class: org.quartz.simpl.SimpleThreadPool
-            threadCount: 10
-            threadPriority: 5
-          jobStore:
-            class: org.quartz.impl.jdbcjobstore.JobStoreTX
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-            useProperties: false
-            tablePrefix: QRTZ_
-            isClustered: false
-            misfireThreshold: 60000
-
+# Eureka Client
 eureka:
   client:
     service-url:
@@ -74,7 +65,10 @@ eureka:
     register-with-eureka: true
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
     hostname: localhost
+    metadata-map:
+      zone: primary
 
 # ✅ FEIGN CONFIGURATION
 feign:
@@ -85,45 +79,25 @@ feign:
         readTimeout: 5000
         loggerLevel: full
 
-# ✅ CALENDARIFIC API (YENİ EKLENEN)
-calendarific:
-  api-key: QvzVcvgwJ49qCz7zBe7DYA1jZb63cxws
-  base-url: https://calendarific.com/api/v2
-  country: TR
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
-# ✅ CORS CONFIGURATION (YENİ EKLENEN)
-cors:
-  allowed-origins:
-    - http://localhost:3000
-    - http://localhost:5173
-  allowed-methods:
-    - GET
-    - POST
-    - PUT
-    - PATCH
-    - DELETE
-    - OPTIONS
-  allowed-headers: "*"
-  allow-credentials: true
-  max-age: 3600
-
+# Logging
 logging:
   level:
     root: INFO
     com.sosyalmedia.notificationservice: DEBUG
     org.springframework.web: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.mail: DEBUG
-    org.quartz: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always

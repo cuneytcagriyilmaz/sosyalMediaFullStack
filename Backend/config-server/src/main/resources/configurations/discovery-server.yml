@@ -1,3 +1,4 @@
+#Backend/config-server/src/main/resources/configurations/discovery-server.yml
 server:
   port: 8761
   # PUBLIC - Dashboard için

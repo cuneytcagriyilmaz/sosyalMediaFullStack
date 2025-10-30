@@ -1,15 +1,27 @@
 server:
   port: 8081
   address: 127.0.0.1
+  # ❌ KALDIR: context-path: /api
   tomcat:
     max-swallow-size: 500MB
 
 spring:
+  application:
+    name: customer-service
   datasource:
     url: jdbc:postgresql://localhost:5432/sosyalmedia_customer_service
     username: cagri
     password: cagri_1234
     driver-class-name: org.postgresql.Driver
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+    static-path-pattern: /static/**
+
+  web:
+    resources:
+      add-mappings: true
+      static-locations: classpath:/static/,classpath:/public/,file:${file.upload.directory}
 
   jpa:
     hibernate:
@@ -19,6 +31,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+    open-in-view: false
 
   servlet:
     multipart:
@@ -38,6 +51,7 @@ eureka:
     prefer-ip-address: true
     hostname: localhost
     ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}:${server.port}  # ✅ DÜZELT
     metadata-map:
       internal: "true"
       security-level: "private"
@@ -46,6 +60,9 @@ eureka:
 logging:
   level:
     com.sosyalmedia.customerservice: DEBUG
+    org.springframework.web: DEBUG  # ✅ EKLE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"  # ✅ EKLE
 
 management:
   endpoints:
@@ -60,4 +77,4 @@ file:
   upload:
     directory: C:\Users\Approxy\Desktop\sosyalMediaProjectFull\sosyalMediaProject\kaydedilenResimler
     allowed-extensions: jpg,jpeg,png,gif,pdf,mp4,avi,mov,doc,docx
-    base-url: http://localhost:8081/uploads # Customer Service portu (8081)
+    base-url: http://localhost:8081/uploads
