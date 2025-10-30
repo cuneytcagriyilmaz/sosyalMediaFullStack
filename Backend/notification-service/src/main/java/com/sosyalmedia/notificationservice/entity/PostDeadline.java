@@ -10,7 +10,13 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Entity
-@Table(name = "post_deadlines")
+@Table(name = "post_deadlines", indexes = {
+        @Index(name = "idx_customer_id", columnList = "customer_id"),
+        @Index(name = "idx_scheduled_date", columnList = "scheduled_date"),
+        @Index(name = "idx_status", columnList = "status"),
+        @Index(name = "idx_customer_date", columnList = "customer_id, scheduled_date"),
+        @Index(name = "idx_event_type", columnList = "event_type")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,7 +31,6 @@ public class PostDeadline {
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    //Post ile ilişkilendirme (opsiyonel, şimdilik null olabilir)
     @Column(name = "post_id")
     private Long postId;
 
@@ -44,9 +49,37 @@ public class PostDeadline {
     @Column(name = "post_content", length = 1000)
     private String postContent;
 
-    @Enumerated(EnumType.STRING) // ✅ YENİ: Enum olarak
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private Platform platform; // ✅ DEĞİŞTİ: String -> Platform
+    private Platform platform;
+
+    // ========== ✅ YENİ COLUMN'LAR (Auto Schedule) ==========
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", length = 20)
+    @Builder.Default
+    private EventType eventType = EventType.REGULAR;
+
+    @Column(name = "auto_created", nullable = false)
+    @Builder.Default
+    private Boolean autoCreated = false;
+
+    @Column(name = "holiday_name", length = 100)
+    private String holidayName;
+
+    @Column(name = "holiday_type", length = 50)
+    private String holidayType;
+
+    // ========== ✅ YENİ COLUMN'LAR (Notification) ==========
+
+    @Column(name = "notification_sent", nullable = false)
+    @Builder.Default
+    private Boolean notificationSent = false;
+
+    @Column(name = "notification_sent_at")
+    private LocalDateTime notificationSentAt;
+
+    // ========== AUDIT ==========
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -55,6 +88,8 @@ public class PostDeadline {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    // ========== TRANSIENT METHODS ==========
 
     @Transient
     public int getDaysRemaining() {
@@ -78,11 +113,14 @@ public class PostDeadline {
         }
     }
 
+    // ========== ENUM'LAR ==========
+
     public enum PostDeadlineStatus {
         NOT_STARTED("Başlanmadı", "#94A3B8"),
         IN_PROGRESS("Hazırlanıyor", "#F59E0B"),
         READY("Hazırlandı", "#3B82F6"),
-        SENT("Gönderildi", "#10B981");
+        SENT("Gönderildi", "#10B981"),
+        CANCELLED("İptal Edildi", "#DC2626");  // ✅ YENİ
 
         private final String displayName;
         private final String colorCode;
@@ -134,6 +172,28 @@ public class PostDeadline {
 
         public String getDisplayName() {
             return displayName;
+        }
+    }
+
+    public enum EventType {
+        FIRST_POST("İlk Post", "#9333EA"),       // Mor
+        REGULAR("Düzenli Post", "#3B82F6"),      // Mavi
+        SPECIAL_DATE("Özel Gün", "#F59E0B");     // Turuncu
+
+        private final String displayName;
+        private final String colorCode;
+
+        EventType(String displayName, String colorCode) {
+            this.displayName = displayName;
+            this.colorCode = colorCode;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public String getColorCode() {
+            return colorCode;
         }
     }
 }

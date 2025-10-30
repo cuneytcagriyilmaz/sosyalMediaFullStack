@@ -22,6 +22,9 @@ public class PostDeadlineMapperImpl implements PostDeadlineMapper {
                 .contentReady(request.getContentReady() != null ? request.getContentReady() : false)
                 .postContent(request.getPostContent())
                 .platform(request.getPlatform())
+                // ✅ YENİ: Manuel oluşturulanlarda default değerler
+                .eventType(PostDeadline.EventType.REGULAR)
+                .autoCreated(false)
                 .build();
     }
 
@@ -45,9 +48,13 @@ public class PostDeadlineMapperImpl implements PostDeadlineMapper {
                 .contentReady(entity.getContentReady())
                 .postContent(entity.getPostContent())
                 .platform(entity.getPlatform())
-                // ✅ YENİ: Platform display bilgileri
                 .platformDisplayName(entity.getPlatform() != null ? entity.getPlatform().getDisplayName() : null)
                 .platformBrandColor(entity.getPlatform() != null ? entity.getPlatform().getBrandColor() : null)
+                //  EventType bilgileri
+                .eventType(entity.getEventType())
+                .eventTypeDisplayName(entity.getEventType() != null ? entity.getEventType().getDisplayName() : null)
+                .eventTypeColorCode(entity.getEventType() != null ? entity.getEventType().getColorCode() : null)
+                .holidayName(entity.getHolidayName())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

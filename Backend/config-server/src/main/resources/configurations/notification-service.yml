@@ -101,3 +101,8 @@ logging:
     org.springframework.mail: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+#  Calendarific API
+calendarific:
+  api-key: QvzVcvgwJ49qCz7zBe7DYA1jZb63cxws
+  country: TR

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sosyalmedia.notificationservice.entity.Platform;
 import com.sosyalmedia.notificationservice.entity.PostDeadline.PostDeadlineStatus;
 import com.sosyalmedia.notificationservice.entity.PostDeadline.UrgencyLevel;
+import com.sosyalmedia.notificationservice.entity.PostDeadline.EventType; // ✅ YENİ
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,11 +43,17 @@ public class PostDeadlineResponse {
 
     private String postContent;
 
-    private Platform platform; //  String -> Platform
-
-    // Platform display bilgileri
+    private Platform platform;
     private String platformDisplayName;
     private String platformBrandColor;
+
+    //  YENİ: EventType bilgileri (opsiyonel)
+    private EventType eventType;
+    private String eventTypeDisplayName;
+    private String eventTypeColorCode;
+
+    //  YENİ: Holiday bilgileri (sadece SPECIAL_DATE için dolu)
+    private String holidayName;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;

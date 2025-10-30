@@ -1,5 +1,6 @@
 package com.sosyalmedia.customerservice.service.impl;
 
+import com.sosyalmedia.customerservice.client.NotificationServiceClient;
 import com.sosyalmedia.customerservice.dto.*;
 import com.sosyalmedia.customerservice.dto.request.CustomerRequest;
 import com.sosyalmedia.customerservice.dto.request.CustomerUpdateRequest;
@@ -12,6 +13,7 @@ import com.sosyalmedia.customerservice.mapper.CustomerMapper;
 import com.sosyalmedia.customerservice.repository.CustomerRepository;
 import com.sosyalmedia.customerservice.service.CustomerService;
 import com.sosyalmedia.customerservice.service.FileStorageService;
+import com.sosyalmedia.customerservice.service.NotificationAsyncService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,11 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
     private final FileStorageService fileStorageService;
+    private final NotificationServiceClient notificationServiceClient;
+
+    private final NotificationAsyncService notificationAsyncService;  // ✅ DEĞİŞTİ
+
+
 
     @Override
     public CustomerResponse createCustomer(CustomerRequest request) {
@@ -49,8 +56,13 @@ public class CustomerServiceImpl implements CustomerService {
         Customer savedCustomer = customerRepository.save(customer);
 
         log.info("Customer created with ID: {}", savedCustomer.getId());
+
+        // ✅ YENİ: Asenkron olarak notification gönder
+        notificationAsyncService.triggerAutoSchedule(savedCustomer.getId());
+
         return customerMapper.toResponse(savedCustomer);
     }
+
 
     @Override
     @Transactional(readOnly = true)
